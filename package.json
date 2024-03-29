@@ -1,0 +1,15 @@
+{
+  "name": "lost-in-champ-select",
+  "version": "1.0.0",
+  "description": "Live game analysis",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/Lost-in-Champ-Select/Lost-in-Champ-Select"
+  },
+  "author": "Cory Zauss",
+  "license": "ISC"
+}
