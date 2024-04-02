@@ -23,4 +23,5 @@ CREATE TABLE default.aram_matches
 )
 
 ENGINE = MergeTree()
+ORDER BY (game_start, match_id)
 PRIMARY KEY (game_start, match_id)
