@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'React'
+import React, { useState, useEffect } from 'react'
 
-export default function App() {
+const App = () => {
+
+
   return (
     <div>
-      <h1 id='lost'>Lost in Champ Select</h1>
+      <h1 id="lost">Lost in Champ Select</h1>
 
-    </ div>
-  )
+    </div>
+  );
 }
 
-
+export default App
