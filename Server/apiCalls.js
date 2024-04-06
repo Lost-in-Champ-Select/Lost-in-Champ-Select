@@ -5,10 +5,9 @@ const riotKey = process.env.RIOT_KEY;
 // import fetch from 'node-fetch'
 
 const apiCalls = {
-  getMatchById: async (req, res) => {
-
+  getMatchById: async (id) => {
     try {
-      const matchId = req.params.id;
+      const matchId = id;
       const  data  = await fetch(
         `https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${riotKey}`
       );
@@ -53,6 +52,14 @@ const apiCalls = {
     );
     res.send(data);
   },
+  getLastTwentyMatches: async (playerId) => {
+
+    const data = await fetch(
+      `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?start=0&count=20&api_key=${riotKey}`
+    );
+    let data2 = await data.json()
+    return data2;
+  }
 };
 
 export default apiCalls;
