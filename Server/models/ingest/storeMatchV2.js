@@ -1,0 +1,283 @@
+//USE THIS FILE TO WRITE SCRIPT TO TAKE IN GAME DATA, PARSE AND STORE ACCORDING TO SCHEMA
+import client from "./clickhouse.js";
+import apiCalls from "../../apiCalls.js";
+import pool from "./pg.js";
+
+
+//! first open a connection to postgres and define some places to store data
+//let postgres = await pool.connect();
+
+
+const getEachMatchesData = async (numberOfMatchesToGet) => {
+  let postgres = await pool.connect();
+  let participants = {};
+  let matchIds = [];
+  let matchesSeen = 0;
+
+  const loadMatchesAndPlayers = async () => {
+    try {
+      //! pull the last group of unseen matches from previous run
+      let unseenMatchList = await postgres.query(
+        "SELECT * FROM unseen_matches"
+      );
+      let updateUnseen = await JSON.parse(
+        unseenMatchList.rows[0].matches_array
+      );
+      if (Array.isArray(updateUnseen)) matchIds = updateUnseen;
+    } catch (err) {
+      console.log("error getting unseen matches array", err);
+    }
+
+    try {
+      //! pull Object of unseen players
+      let unseenPlayersPG = await postgres.query(
+        "SELECT * FROM unseen_players"
+      );
+      let updatePlayers = await JSON.parse(unseenPlayersPG.rows[0].player);
+      if (Object.keys(updatePlayers).length > 0) participants = updatePlayers;
+    } catch (err) {
+      console.log("Error getting players object", err);
+    }
+  };
+  await loadMatchesAndPlayers()
+  console.log('Initial Load complete')
+
+  const getUnseenPlayerId = (playersObj) => {
+    //! gets an unseen player from an object of players
+    for (let key in playersObj) {
+      if (playersObj[key] === 0) continue
+      //! set value in player obj to 0 signifying we have seen this player recently
+      playersObj[key] = 0;
+      return key;
+    }
+  };
+
+  const refreshMatches = async (playerId) => {
+    //! gets a players last 20 matches and returns the array of matches
+    const playersMatchs = await apiCalls.getLastTwentyMatches(playerId);
+    return playersMatchs;
+  };
+
+  const refreshMatchIds = async () => {
+    console.log("**  REFRESHING MATCH IDS  **");
+    try {
+      const unseenPlayer = await getUnseenPlayerId(participants);
+      const newMatches = await refreshMatches(unseenPlayer);
+      if (Array.isArray(newMatches)) {
+        matchIds = newMatches;
+        console.log(`Updated matchIds with these new matches:${newMatches}`);
+        return
+      } else {
+        console.log("ERROR GETTING NEW MATCHES TRYING AGAIN WITH NEW PLAYER");
+        return;
+      }
+    } catch (err) {
+      console.log(`refresh matchIds error: ${err}`)
+    }
+    return
+  };
+
+  const matchDataIntoClickhouse = async (currentMatch, playersObject) => {
+    //! FN takes a match and parses relevant data and stores into clickhouse and returns if it was a success in string format
+    //console.log("FETCHING DATA FOR MATCH::", currentMatch);
+    let { info, metadata } = await apiCalls.getMatchById(currentMatch);
+
+    //!guard clauses
+    if (info?.gameType === "CUSTOM_GAME") return "SKIPPING CUSTOM MATCH";
+    if (metadata === undefined) return `problem fetching match ${currentMatch}`;
+
+    for (let i = 0; i < metadata.participants.length; i++) {
+      //! storing seen players in obj to draw from when out of matches
+      if (playersObject[`${metadata.participants[i]}`] !== undefined) continue;
+      playersObject[`${metadata.participants[i]}`] = 1;
+    }
+
+    // TODO: store relevant data --> add more fields as project evloves
+    let insertMe = {
+      game_id: info.gameId,
+      match_id: metadata.matchId,
+      game_start: info.gameStartTimestamp,
+      game_version: info.gameVersion,
+      team_one_participants: metadata.participants.slice(0, 5),
+      team_two_participants: metadata.participants.slice(5, 10),
+      team_one_champ_one: info.participants[0]?.championName,
+      team_one_champ_two: info.participants[1]?.championName,
+      team_one_champ_three: info.participants[2]?.championName,
+      team_one_champ_four: info.participants[3]?.championName,
+      team_one_champ_five: info.participants[4]?.championName,
+      team_two_champ_one: info.participants[5]?.championName,
+      team_two_champ_two: info.participants[6]?.championName,
+      team_two_champ_three: info.participants[7]?.championName,
+      team_two_champ_four: info.participants[8]?.championName,
+      team_two_champ_five: info.participants[9]?.championName,
+      team_one_win: info.participants[0].win,
+      team_two_win: info.participants[6].win,
+    };
+    //console.log("*BUILT OBJECT TO INSERT*");
+
+    //! then add match into CLickhouse and to pg seen matches list
+    try {
+      let result = await client.insert({
+        table: info.gameMode === "ARAM" ? "aram_matches" : "classic_matches",
+        values: [insertMe],
+        format: "JSONEachRow",
+      });
+
+      let storeMatchId = await postgres.query(
+        "INSERT INTO match_ids (match_id) VALUES ($1);",
+        [currentMatch]
+      );
+      let insertSuccess = result.executed && storeMatchId.rowCount > 0 ? "SUCCESS" : "FAILED";
+      return `INSERT = ${insertSuccess} FOR MATCH: ${currentMatch}`;
+    } catch (err) {
+      console.log("ERROR", err);
+    }
+    return;
+  };
+
+  const ingestOrRejectMatch = async (currentMatch) => {
+    //! logic to check PG for seen match and pass or reject it
+    let foundMatch = await postgres.query(
+      `SELECT match_id from match_ids WHERE match_id = $1;`,
+      [currentMatch]
+    );
+
+    //! if we havent seen the match we get the data and store it
+    if (foundMatch.rows.length !== 0) {
+      console.log("match already seen");
+    } else {
+      let tryInsert = await matchDataIntoClickhouse(currentMatch, participants);
+      console.log("Ingest or Reject fn:", tryInsert);
+      matchesSeen += 1;
+    }
+  };
+
+  const storeUnseenPlayersPG = async () => {
+    //! updates the player object stored in pg
+    try {
+      let playerObjectToString = JSON.stringify(participants);
+      let updateUnseenPlayerObjPG = await postgres.query(
+        "UPDATE unseen_players SET player = ($1)",
+        [playerObjectToString]
+      );
+      console.log(
+        updateUnseenPlayerObjPG.command,
+        "to unseen players in PG Sucessful"
+      );
+    } catch (err) {
+      console.log("ERROR", err);
+    }
+  };
+
+  const storeUnseenMatchesPG = async () => {
+    //! store the extra unseen matches in pg for next time
+    try {
+      let matchIdsToString = JSON.stringify(matchIds);
+      let updateUnseenMatchIdsPG = await postgres.query(
+        "UPDATE unseen_matches SET matches_array = ($1)",
+        [matchIdsToString]
+      );
+      console.log(
+        updateUnseenMatchIdsPG.command,
+        "to unseen matches in PG Sucessful"
+      );
+      console.log("Players Stored:", Object.keys(participants).length);
+    } catch (err) {
+      console.log("ERROR", err);
+    }
+  };
+
+  //!  calls api for each match, gets new list of matches from unseen player and repeat process until X games ingested
+  console.log("******************************")
+  console.log("GETTING EACH MATCHES DATA", matchIds)
+  console.log("******************************")
+  while (matchesSeen < numberOfMatchesToGet) {
+    let matches = [];
+    matchIds.forEach((match) => {
+      matches.push(ingestOrRejectMatch(match));
+    });
+    let resolved = await Promise.all(matches);
+    console.log(resolved);
+    await refreshMatchIds()
+
+    console.log(`:::::: SEEN ${matchesSeen} MATCHES ::::::`);
+  }
+  await storeUnseenMatchesPG();
+  await storeUnseenPlayersPG();
+  console.log(`MATCH INGESTION COMPLETE`);
+
+  await postgres.release();
+  console.log("PG CLOSED");
+}
+
+setInterval(async function () {
+   await getEachMatchesData(10)
+}, 20000);
+
+// getEachMatchesData(10)
+
+
+// ! get x matches and then wait 2 minutes then keep going
+// const getNumMatches = async(num) =>{
+//   let getMatches = setInterval(async function () {
+//     console.log("MATCHES SEEN",matchesSeen)
+//     await getEachMatchesData(10);
+//     if (matchesSeen >= num) {
+
+//       await postgres.release()
+//       clearInterval(getMatches)
+//         }
+// }, 15000)
+
+// }
+
+//`getNumMatches(200)
+
+//! STORE AND LOAD PLAYER OBJECT TOO ? REFACTOR TO USE RANDOM PLAYER INSTEAD?
+
+//? RATE LIMITS
+//? 20 requests every 1 seconds(s)
+//? 100 requests every 2 minutes(s)
+
+
+const cleanPlayerObj = async () => {
+  let participants = {}
+  let postgres = await pool.connect();
+  try {
+    //! pull Object of unseen players
+    let unseenPlayersPG = await postgres.query("SELECT * FROM unseen_players");
+    let updatePlayers = await JSON.parse(unseenPlayersPG.rows[0].player);
+    if (Object.keys(updatePlayers).length > 0) participants = updatePlayers;
+  } catch (err) {
+    console.log("Error getting players object", err);
+    return
+  }
+
+  const clean = async () => {
+    for (let key in participants) {
+      console.log(key === 0);
+      console.log(participants[key]);
+      if (key === 0) delete participants.key;
+    }
+
+  }
+
+  await clean()
+  try {
+    let playerObjectToString = JSON.stringify(participants);
+    let updateUnseenPlayerObjPG = await postgres.query(
+      "UPDATE unseen_players SET player = ($1)",
+      [playerObjectToString]
+    );
+    console.log(
+      updateUnseenPlayerObjPG.command,
+      "to unseen players in PG Sucessful"
+    );
+  } catch (err) {
+    console.log("ERROR", err);
+  }
+
+  postgres.release()
+  console.log(`new player obj is ${Object.keys(participants).length} entries`)
+}
+//cleanPlayerObj()

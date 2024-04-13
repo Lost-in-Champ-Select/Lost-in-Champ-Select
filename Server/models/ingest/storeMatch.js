@@ -21,30 +21,7 @@ let disconnectPG = async() => {
 //! 100 requests every 2 minutes(s)
 
 let matchIds= [];
-try {
-  await connectToPG();
-  let unseenMatchList = await postgres.query('SELECT * FROM unseen_matches')
-  let updateUnseen = await JSON.parse(unseenMatchList.rows[0].matches_array)
-  matchIds = updateUnseen
-  console.log(updateUnseen, matchIds)
-} catch (err) {
-  console.log(err)
-
-}
-// let matchIds = [
-//   "NA1_4907194745",
-//   "NA1_4904392604",
-//   "NA1_4902580260",
-//   "NA1_4902571283",
-//   "NA1_4902555882",
-//   "NA1_4896796017",
-//   "NA1_4894714375",
-//   "NA1_4894687465",
-//   "NA1_4894653027",
-//   "NA1_4894621454",
-// ];
-let currentMatch = matchIds[0];
-
+let currentMatch = '';
 let participants = {};
 
 
@@ -105,29 +82,26 @@ let matchesSeen = 0;
 
 const ingestOrRejectMatch = async () => {
   //! check PG for seen match
-  await connectToPG()
+  // await connectToPG()
   let foundMatch = await postgres.query(`SELECT match_id from match_ids WHERE match_id = $1;`, [currentMatch])
 
   //! if we havent seen the match we get the data and store it
   if (foundMatch.rows.length !== 0) {
     console.log("match already seen");
-    await disconnectPG()
   } else {
     await matchDataIntoClickhouse();
-    await disconnectPG()
     matchesSeen += 1
-    console.log(`** SEEN ${matchesSeen} MATCHES **`)
   }
+  // await disconnectPG()
 }
 
 const getUnseenPlayerId = (playersObj = participants) => {
   for (let key in playersObj) {
     if (playersObj[key] === 0) continue
-    //! have we already got this players last 20 ? set their entry to 0 so we know
+    // have we already got this players last 20 ? set their entry to 0 so we know
     playersObj[key] = 0
     return key
   }
-
 }
 
 //!A func to get participants match histories and add matches to the queue when matches are out of data
@@ -138,10 +112,26 @@ const refreshMatchIds = async (playerId) => {
   participants[playersMatchs] = 0
 }
 
-// TODO: else call api for each match and repeat process
-const getEachMatchesData = async(numberOfMatchesToGet) => {
-  while (matchesSeen < numberOfMatchesToGet) {
+let counter = 0;
 
+//! else call api for each match and repeat process
+const getEachMatchesData = async (numberOfMatchesToGet) => {
+  try {
+    await connectToPG();
+    if (Object.keys(participants).length === 0) {
+      console.log(' NO UNSEEN PLAYERS****************************')
+      let unseenPlayersPG = await postgres.query("SELECT * FROM unseen_players");
+      let updatePlayers = await JSON.parse(unseenPlayersPG.rows[0].player);
+      participants=updatePlayers
+    }
+    let unseenMatchList = await postgres.query("SELECT * FROM unseen_matches");
+    let updateUnseen = await JSON.parse(unseenMatchList.rows[0].matches_array);
+    matchIds = updateUnseen;
+    console.log(updateUnseen, matchIds);
+  } catch (err) {
+    console.log(err);
+  }
+  while (matchesSeen < numberOfMatchesToGet) {
     currentMatch = matchIds.at(-1)
     await ingestOrRejectMatch()
     matchIds.pop()
@@ -150,21 +140,38 @@ const getEachMatchesData = async(numberOfMatchesToGet) => {
       const unseenPlayer = getUnseenPlayerId()
       await refreshMatchIds(unseenPlayer)
     }
+    console.log(`:::::: SEEN ${matchesSeen} MATCHES ::::::`)
   }
-  console.log(`SEEN ${matchesSeen} MATCHES`)
-  // TODO at this point store the extra unseen matches in pg
-  let matchIdsToString = JSON.stringify(matchIds)
-  try {
-    await connectToPG()
-    let updateUnseenListPG = await postgres.query('UPDATE unseen_matches SET matches_array = ($1)', [matchIdsToString]);
-    console.log(updateUnseenListPG.command, 'to unseen matches in PG Sucessful')
-    await disconnectPG();
-  } catch (err) {
-    console.log("ERROR", err);
+  matchesSeen = 0
+  //! store the extra unseen matches in pg
+
+  if (typeof(matchIds[0]) === 'string') {
+    let matchIdsToString = JSON.stringify(matchIds)
+    let participantsToString = JSON.stringify(participants)
+    try {
+      let updateUnseenMatchesPG = await postgres.query('UPDATE unseen_matches SET matches_array = ($1)', [matchIdsToString]);
+      let updateUnseenPlayersPG = await postgres.query('UPDATE unseen_players SET player = ($1)', [participantsToString]);
+      console.log(updateUnseenMatchesPG.command, 'to unseen matches in PG Sucessful')
+      console.log(updateUnseenPlayersPG.command, 'to unseen players in PG Sucessful')
+    } catch (err) {
+      console.log("ERROR", err);
+    }
+  } else {
+    throw new Error ('NOT AN ARRAY OF MATCHES')
   }
+  counter+=1
+  console.log(`*^^@#* INTERVAL COUNT ${counter}`)
+  await disconnectPG();
 }
 
-//! get x matches and then wait 2 minutes then keep going
+//! get x matches and then wait x  then keep going
 
-getEachMatchesData(30)
+//! RATE LIMITS FOR DEV KEY
+//! 20 requests every 1 seconds(s)
+//! 100 requests every 2 minutes(s)
 
+setInterval(function () {
+  getEachMatchesData(15)
+}, 30000)
+
+// getEachMatchesData(5)
