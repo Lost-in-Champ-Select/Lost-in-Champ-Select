@@ -6,7 +6,8 @@ import pool from "./pg.js";
 
 //! first open a connection to postgres and define some places to store data
 //let postgres = await pool.connect();
-
+let totalARAMMatches = 0;
+let totalCLASSICMatches = 0;
 
 const getEachMatchesData = async (numberOfMatchesToGet) => {
   let postgres = await pool.connect();
@@ -53,8 +54,8 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   };
 
   const refreshMatches = async (playerId) => {
-    //! gets a players last 20 matches and returns the array of matches
-    const playersMatchs = await apiCalls.getLastTwentyMatches(playerId);
+    //! gets a players last NUM matches and returns the array of matches
+    const playersMatchs = await apiCalls.getLastNumMatches(playerId, 10); //? get last 10 matches
     return playersMatchs;
   };
 
@@ -128,6 +129,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
         [currentMatch]
       );
       let insertSuccess = result.executed && storeMatchId.rowCount > 0 ? "SUCCESS" : "FAILED";
+      insertSuccess === "SUCCESS" && info.gameMode === "ARAM" ? totalARAMMatches+=1 : totalCLASSICMatches+=1
       return `INSERT = ${insertSuccess} FOR MATCH: ${currentMatch}`;
     } catch (err) {
       console.log("ERROR", err);
@@ -188,19 +190,17 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   };
 
   //!  calls api for each match, gets new list of matches from unseen player and repeat process until X games ingested
-  console.log("******************************")
-  console.log("GETTING EACH MATCHES DATA", matchIds)
-  console.log("******************************")
+  console.log("Requesting data for match Ids:", matchIds)
   while (matchesSeen < numberOfMatchesToGet) {
     let matches = [];
     matchIds.forEach((match) => {
       matches.push(ingestOrRejectMatch(match));
     });
     let resolved = await Promise.all(matches);
-    console.log(resolved);
+    console.log(resolved.length, 'calls resolved');
     await refreshMatchIds()
 
-    console.log(`:::::: SEEN ${matchesSeen} MATCHES ::::::`);
+    console.log(`${matchesSeen} Matches Seen this interval`);
   }
   await storeUnseenMatchesPG();
   await storeUnseenPlayersPG();
@@ -211,13 +211,16 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 }
 
 setInterval(async function () {
-   await getEachMatchesData(10)
-}, 20000);
+  await getEachMatchesData(10)
+  console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`)
+  console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`)
+}, 30000);
 
 // getEachMatchesData(10)
 
+// TODO: error handling, rate limit handling, apply for production key, get a URL
 
-// ! get x matches and then wait 2 minutes then keep going
+// ! get x matches and then wait
 // const getNumMatches = async(num) =>{
 //   let getMatches = setInterval(async function () {
 //     console.log("MATCHES SEEN",matchesSeen)
@@ -233,51 +236,50 @@ setInterval(async function () {
 
 //`getNumMatches(200)
 
-//! STORE AND LOAD PLAYER OBJECT TOO ? REFACTOR TO USE RANDOM PLAYER INSTEAD?
 
 //? RATE LIMITS
 //? 20 requests every 1 seconds(s)
 //? 100 requests every 2 minutes(s)
 
+// const cleanPlayerObj = async () => {
+//   //! this fn can clean the player object, possibly run when obj gets to X size or clean every patch?
+//   let participants = {}
+//   let postgres = await pool.connect();
+//   try {
+//     //! pull Object of unseen players
+//     let unseenPlayersPG = await postgres.query("SELECT * FROM unseen_players");
+//     let updatePlayers = await JSON.parse(unseenPlayersPG.rows[0].player);
+//     if (Object.keys(updatePlayers).length > 0) participants = updatePlayers;
+//   } catch (err) {
+//     console.log("Error getting players object", err);
+//     return
+//   }
 
-const cleanPlayerObj = async () => {
-  let participants = {}
-  let postgres = await pool.connect();
-  try {
-    //! pull Object of unseen players
-    let unseenPlayersPG = await postgres.query("SELECT * FROM unseen_players");
-    let updatePlayers = await JSON.parse(unseenPlayersPG.rows[0].player);
-    if (Object.keys(updatePlayers).length > 0) participants = updatePlayers;
-  } catch (err) {
-    console.log("Error getting players object", err);
-    return
-  }
+//   const clean = async () => {
+//     for (let key in participants) {
+//       console.log(key === 0);
+//       console.log(participants[key]);
+//       if (key === 0) delete participants.key;
+//     }
 
-  const clean = async () => {
-    for (let key in participants) {
-      console.log(key === 0);
-      console.log(participants[key]);
-      if (key === 0) delete participants.key;
-    }
+//   }
 
-  }
+//   await clean()
+//   try {
+//     let playerObjectToString = JSON.stringify(participants);
+//     let updateUnseenPlayerObjPG = await postgres.query(
+//       "UPDATE unseen_players SET player = ($1)",
+//       [playerObjectToString]
+//     );
+//     console.log(
+//       updateUnseenPlayerObjPG.command,
+//       "to unseen players in PG Sucessful"
+//     );
+//   } catch (err) {
+//     console.log("ERROR", err);
+//   }
 
-  await clean()
-  try {
-    let playerObjectToString = JSON.stringify(participants);
-    let updateUnseenPlayerObjPG = await postgres.query(
-      "UPDATE unseen_players SET player = ($1)",
-      [playerObjectToString]
-    );
-    console.log(
-      updateUnseenPlayerObjPG.command,
-      "to unseen players in PG Sucessful"
-    );
-  } catch (err) {
-    console.log("ERROR", err);
-  }
-
-  postgres.release()
-  console.log(`new player obj is ${Object.keys(participants).length} entries`)
-}
+//   postgres.release()
+//   console.log(`new player obj is ${Object.keys(participants).length} entries`)
+// }
 //cleanPlayerObj()

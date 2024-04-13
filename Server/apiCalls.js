@@ -52,10 +52,10 @@ const apiCalls = {
     );
     res.send(data);
   },
-  getLastTwentyMatches: async (playerId) => {
+  getLastNumMatches: async (playerId,numMatches) => {
 
     const data = await fetch(
-      `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?start=0&count=20&api_key=${riotKey}`
+      `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?start=0&count=${numMatches}&api_key=${riotKey}`
     );
     let data2 = await data.json()
     return data2;
