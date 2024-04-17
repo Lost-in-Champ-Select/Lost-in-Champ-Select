@@ -4,22 +4,25 @@ dotenv.config();
 const riotKey = process.env.RIOT_KEY;
 // import fetch from 'node-fetch'
 
-const apiCalls = {
-  getMatchById: async (id) => {
-    try {
-      const matchId = id;
-      const  data  = await fetch(
-        `https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${riotKey}`
-      );
-      const data2 = await data.json();
-      //console.log('data2::', data2);
-      //data2.info has all the match
-      return data2
-      //res.send(data2);
-    } catch (err) {
-      console.log(`error getting match: ${err}`)
+export async function getMatchById(id) {
+    const matchId = id;
+    const  response  = await fetch(
+      `https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${riotKey}`
+    );
+    if (response.status === 200) {
+      return await response.json();
+    } else if (response.status === 429) {
+      const retry = response.headers.get("Retry-After")
+      console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`)
+      await new Promise((resolve) => setTimeout(resolve, retry * 1000));
+      return apiCalls.getMatchById(id)
+    } else {
+      throw new Error(`Did not recieve valid response, response recieved: ${response.status}`)
     }
-  },
+
+}
+
+const apiCalls = {
   getLiveMatch: async (req, res) => {
     let sumId = req.params.sumId;
     let region = req.params.region;

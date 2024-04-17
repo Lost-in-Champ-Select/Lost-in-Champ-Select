@@ -2,6 +2,7 @@
 import client from './clickhouse.js'
 import apiCalls from '../../apiCalls.js'
 import pool from './pg.js'
+import { getMatchById } from '../../apiCalls.js'
 
 //! connect to pg and disconnect
 let postgres;
@@ -29,7 +30,7 @@ let participants = {};
 //! created function to store in clickhouse, will call it if we havent seen the match
 const matchDataIntoClickhouse = async () => {
   console.log('***** getting data for match:',currentMatch)
-  let { info, metadata } = await (apiCalls.getMatchById(currentMatch))
+  let { info, metadata } = await (getMatchById(currentMatch))
   if (metadata === undefined) return
 
   for (let i = 0; i < metadata.participants.length; i++) {

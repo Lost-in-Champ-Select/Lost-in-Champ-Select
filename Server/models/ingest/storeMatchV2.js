@@ -2,7 +2,7 @@
 import client from "./clickhouse.js";
 import apiCalls from "../../apiCalls.js";
 import pool from "./pg.js";
-
+import { getMatchById } from "../../apiCalls.js";
 
 //! first open a connection to postgres and define some places to store data
 //let postgres = await pool.connect();
@@ -55,7 +55,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 
   const refreshMatches = async (playerId) => {
     //! gets a players last NUM matches and returns the array of matches
-    const playersMatchs = await apiCalls.getLastNumMatches(playerId, 10); //? get last 10 matches
+    const playersMatchs = await apiCalls.getLastNumMatches(playerId, numberOfMatchesToGet); //? get last 10 matches
     return playersMatchs;
   };
 
@@ -81,43 +81,43 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   const matchDataIntoClickhouse = async (currentMatch, playersObject) => {
     //! FN takes a match and parses relevant data and stores into clickhouse and returns if it was a success in string format
     //console.log("FETCHING DATA FOR MATCH::", currentMatch);
-    let { info, metadata } = await apiCalls.getMatchById(currentMatch);
-
-    //!guard clauses
-    if (info?.gameType === "CUSTOM_GAME") return "SKIPPING CUSTOM MATCH";
-    if (metadata === undefined) return `problem fetching match ${currentMatch}`;
-
-    for (let i = 0; i < metadata.participants.length; i++) {
-      //! storing seen players in obj to draw from when out of matches
-      if (playersObject[`${metadata.participants[i]}`] !== undefined) continue;
-      playersObject[`${metadata.participants[i]}`] = 1;
-    }
-
-    // TODO: store relevant data --> add more fields as project evloves
-    let insertMe = {
-      game_id: info.gameId,
-      match_id: metadata.matchId,
-      game_start: info.gameStartTimestamp,
-      game_version: info.gameVersion,
-      team_one_participants: metadata.participants.slice(0, 5),
-      team_two_participants: metadata.participants.slice(5, 10),
-      team_one_champ_one: info.participants[0]?.championName,
-      team_one_champ_two: info.participants[1]?.championName,
-      team_one_champ_three: info.participants[2]?.championName,
-      team_one_champ_four: info.participants[3]?.championName,
-      team_one_champ_five: info.participants[4]?.championName,
-      team_two_champ_one: info.participants[5]?.championName,
-      team_two_champ_two: info.participants[6]?.championName,
-      team_two_champ_three: info.participants[7]?.championName,
-      team_two_champ_four: info.participants[8]?.championName,
-      team_two_champ_five: info.participants[9]?.championName,
-      team_one_win: info.participants[0].win,
-      team_two_win: info.participants[6].win,
-    };
-    //console.log("*BUILT OBJECT TO INSERT*");
-
-    //! then add match into CLickhouse and to pg seen matches list
     try {
+      let { info, metadata } = await getMatchById(currentMatch);
+      //!guard clauses
+      if (info?.gameType === "CUSTOM_GAME") return "SKIPPING CUSTOM MATCH";
+      if (metadata === undefined) return `problem fetching match ${currentMatch}`;
+
+      for (let i = 0; i < metadata.participants.length; i++) {
+        //! storing seen players in obj to draw from when out of matches
+        if (playersObject[`${metadata.participants[i]}`] !== undefined) continue;
+        playersObject[`${metadata.participants[i]}`] = 1;
+      }
+
+      // TODO: store relevant data --> add more fields as project evloves
+      let insertMe = {
+        game_id: info.gameId,
+        match_id: metadata.matchId,
+        game_start: info.gameStartTimestamp,
+        game_version: info.gameVersion,
+        team_one_participants: metadata.participants.slice(0, 5),
+        team_two_participants: metadata.participants.slice(5, 10),
+        team_one_champ_one: info.participants[0]?.championName,
+        team_one_champ_two: info.participants[1]?.championName,
+        team_one_champ_three: info.participants[2]?.championName,
+        team_one_champ_four: info.participants[3]?.championName,
+        team_one_champ_five: info.participants[4]?.championName,
+        team_two_champ_one: info.participants[5]?.championName,
+        team_two_champ_two: info.participants[6]?.championName,
+        team_two_champ_three: info.participants[7]?.championName,
+        team_two_champ_four: info.participants[8]?.championName,
+        team_two_champ_five: info.participants[9]?.championName,
+        team_one_win: info.participants[0].win,
+        team_two_win: info.participants[6].win,
+      };
+      //console.log("*BUILT OBJECT TO INSERT*", insertMe);
+
+      //! then add match into CLickhouse and to pg seen matches list
+
       let result = await client.insert({
         table: info.gameMode === "ARAM" ? "aram_matches" : "classic_matches",
         values: [insertMe],
@@ -131,26 +131,30 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       let insertSuccess = result.executed && storeMatchId.rowCount > 0 ? "SUCCESS" : "FAILED";
       insertSuccess === "SUCCESS" && info.gameMode === "ARAM" ? totalARAMMatches+=1 : totalCLASSICMatches+=1
       return `INSERT = ${insertSuccess} FOR MATCH: ${currentMatch}`;
+
+
     } catch (err) {
-      console.log("ERROR", err);
+      console.log("ERROR GETTING MATCH", err)
     }
+
     return;
   };
 
   const ingestOrRejectMatch = async (currentMatch) => {
     //! logic to check PG for seen match and pass or reject it
     let foundMatch = await postgres.query(
-      `SELECT match_id from match_ids WHERE match_id = $1;`,
-      [currentMatch]
-    );
+    `SELECT match_id from match_ids WHERE match_id = $1;`,
+    [currentMatch]
+  );
 
     //! if we havent seen the match we get the data and store it
     if (foundMatch.rows.length !== 0) {
       console.log("match already seen");
+      return null
     } else {
       let tryInsert = await matchDataIntoClickhouse(currentMatch, participants);
-      console.log("Ingest or Reject fn:", tryInsert);
-      matchesSeen += 1;
+      console.log(tryInsert)
+      if (tryInsert === 'SUCCESS' ) matchesSeen += 1;
     }
   };
 
@@ -191,13 +195,20 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 
   //!  calls api for each match, gets new list of matches from unseen player and repeat process until X games ingested
   console.log("Requesting data for match Ids:", matchIds)
-  while (matchesSeen < numberOfMatchesToGet) {
+  let matchesRan = 0
+  while (matchesRan < numberOfMatchesToGet) {
     let matches = [];
-    matchIds.forEach((match) => {
-      matches.push(ingestOrRejectMatch(match));
+    matchIds.forEach(async(match) => {
+      let res =  ingestOrRejectMatch(match);
+      if (res !== null) {
+        matches.push(res);
+      }
     });
+
     let resolved = await Promise.all(matches);
+    console.log(resolved);
     console.log(resolved.length, 'calls resolved');
+    matchesRan += resolved.length;
     await refreshMatchIds()
 
     console.log(`${matchesSeen} Matches Seen this interval`);
@@ -210,36 +221,14 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   console.log("PG CLOSED");
 }
 
-setInterval(async function () {
-  await getEachMatchesData(10)
-  console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`)
+while (true) {
+  await getEachMatchesData(5);
+  console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`);
   console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`)
-}, 30000);
-
-// getEachMatchesData(10)
+}
 
 // TODO: error handling, rate limit handling, apply for production key, get a URL
-
-// ! get x matches and then wait
-// const getNumMatches = async(num) =>{
-//   let getMatches = setInterval(async function () {
-//     console.log("MATCHES SEEN",matchesSeen)
-//     await getEachMatchesData(10);
-//     if (matchesSeen >= num) {
-
-//       await postgres.release()
-//       clearInterval(getMatches)
-//         }
-// }, 15000)
-
-// }
-
-//`getNumMatches(200)
-
-
-//? RATE LIMITS
-//? 20 requests every 1 seconds(s)
-//? 100 requests every 2 minutes(s)
+// TODO: is there a way to run the script on an interval without needing setinterval(worker or something?)
 
 // const cleanPlayerObj = async () => {
 //   //! this fn can clean the player object, possibly run when obj gets to X size or clean every patch?
