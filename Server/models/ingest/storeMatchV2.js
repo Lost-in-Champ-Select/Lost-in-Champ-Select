@@ -3,6 +3,7 @@ import client from "./clickhouse.js";
 import apiCalls from "../../apiCalls.js";
 import pool from "./pg.js";
 import { getMatchById } from "../../apiCalls.js";
+import process from "process"
 
 //! first open a connection to postgres and define some places to store data
 //let postgres = await pool.connect();
@@ -47,15 +48,19 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     //! gets an unseen player from an object of players
     for (let key in playersObj) {
       if (playersObj[key] === 0) continue
+      let newId = key
       //! set value in player obj to 0 signifying we have seen this player recently
-      playersObj[key] = 0;
-      return key;
+     // delete playersObj[key]
+      return newId;
     }
   };
 
   const refreshMatches = async (playerId) => {
     //! gets a players last NUM matches and returns the array of matches
     const playersMatchs = await apiCalls.getLastNumMatches(playerId, numberOfMatchesToGet); //? get last 10 matches
+    if (Array.isArray(playersMatchs)) {
+      delete participants[playerId]
+    }
     return playersMatchs;
   };
 
@@ -87,10 +92,12 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       if (info?.gameType === "CUSTOM_GAME") return "SKIPPING CUSTOM MATCH";
       if (metadata === undefined) return `problem fetching match ${currentMatch}`;
 
-      for (let i = 0; i < metadata.participants.length; i++) {
-        //! storing seen players in obj to draw from when out of matches
-        if (playersObject[`${metadata.participants[i]}`] !== undefined) continue;
-        playersObject[`${metadata.participants[i]}`] = 1;
+      if (Object.keys(participants).length < 100) {
+        for (let i = 0; i < metadata.participants.length; i++) {
+          //! storing seen players in obj to draw from when out of matches
+          if (playersObject[`${metadata.participants[i]}`] !== undefined) continue;
+          playersObject[`${metadata.participants[i]}`] = 1;
+        }
       }
 
       // TODO: store relevant data --> add more fields as project evloves
@@ -135,9 +142,8 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 
     } catch (err) {
       console.log("ERROR GETTING MATCH", err)
+      return 403
     }
-
-    return;
   };
 
   const ingestOrRejectMatch = async (currentMatch) => {
@@ -154,7 +160,11 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     } else {
       let tryInsert = await matchDataIntoClickhouse(currentMatch, participants);
       console.log(tryInsert)
-      if (tryInsert === 'SUCCESS' ) matchesSeen += 1;
+      if (tryInsert === 'SUCCESS') matchesSeen += 1;
+      if (tryInsert === 403) {
+        console.log(`Recieved 403 from RIOT, exiting script`)
+        process.exit(1)
+      }
     }
   };
 
@@ -178,6 +188,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   const storeUnseenMatchesPG = async () => {
     //! store the extra unseen matches in pg for next time
     try {
+      console.log('storing:', matchIds)
       let matchIdsToString = JSON.stringify(matchIds);
       let updateUnseenMatchIdsPG = await postgres.query(
         "UPDATE unseen_matches SET matches_array = ($1)",
@@ -221,11 +232,6 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   console.log("PG CLOSED");
 }
 
-while (true) {
-  await getEachMatchesData(5);
-  console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`);
-  console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`)
-}
 
 // TODO: error handling, rate limit handling, apply for production key, get a URL
 // TODO: is there a way to run the script on an interval without needing setinterval(worker or something?)
@@ -246,14 +252,24 @@ while (true) {
 
 //   const clean = async () => {
 //     for (let key in participants) {
-//       console.log(key === 0);
-//       console.log(participants[key]);
+//       // console.log(key === 0);
+//       // console.log(participants[key]);
 //       if (key === 0) delete participants.key;
 //     }
 
 //   }
-
+//   const deleteHalf = async (obj) => {
+//     let counter = 0;
+//     for (let key in obj) {
+//       if (counter % 2 === 0) {
+//         delete obj[key];
+//       }
+//       counter++;
+//     }
+//   };
+//   await deleteHalf(participants)
 //   await clean()
+
 //   try {
 //     let playerObjectToString = JSON.stringify(participants);
 //     let updateUnseenPlayerObjPG = await postgres.query(
@@ -268,7 +284,17 @@ while (true) {
 //     console.log("ERROR", err);
 //   }
 
+
 //   postgres.release()
 //   console.log(`new player obj is ${Object.keys(participants).length} entries`)
 // }
 //cleanPlayerObj()
+
+
+//cleans player obj of seen players before running fn
+
+for (;;) {
+  await getEachMatchesData(5);
+  console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`);
+  console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`);
+}
