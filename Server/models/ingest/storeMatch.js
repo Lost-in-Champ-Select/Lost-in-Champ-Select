@@ -46,6 +46,20 @@ const matchDataIntoClickhouse = async () => {
     game_version: info.gameVersion,
     team_one_participants: metadata.participants.slice(0, 5),
     team_two_participants: metadata.participants.slice(5, 10),
+    team_one_champs: [
+      info.participants[0].championName,
+      info.participants[1].championName,
+      info.participants[2].championName,
+      info.participants[3].championName,
+      info.participants[4].championName,
+    ],
+    team_two_champs: [
+      info.participants[5].championName,
+      info.participants[6].championName,
+      info.participants[7].championName,
+      info.participants[8].championName,
+      info.participants[9].championName,
+    ],
     team_one_champ_one: info.participants[0].championName,
     team_one_champ_two: info.participants[1].championName,
     team_one_champ_three: info.participants[2].championName,
@@ -57,7 +71,7 @@ const matchDataIntoClickhouse = async () => {
     team_two_champ_four: info.participants[8].championName,
     team_two_champ_five: info.participants[9].championName,
     team_one_win: info.participants[0].win,
-    team_two_win: info.participants[6].win,
+    
   };
   console.log('*BUILT OBJECT TO INSERT*')
   // add match into CLickhouse and to pg seen matches list
