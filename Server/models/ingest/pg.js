@@ -30,3 +30,5 @@ export default pool;
 
 
 GRANT ALL PRIVILEGES ON DATABASE league_matches TO lost_in_champ_select;
+
+pm2 start Server/models/ingest/storeMatchV2.js  --env RIOT_KEY=RGAPI-68224a0f-f9c0-4467-ae6d-9c78d56156a2

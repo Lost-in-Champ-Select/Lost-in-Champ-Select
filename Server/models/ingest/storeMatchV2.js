@@ -10,6 +10,14 @@ import process from "process"
 let totalARAMMatches = 0;
 let totalCLASSICMatches = 0;
 
+let defaultList = [
+  "NA1_4978610029",
+  "NA1_4978585047",
+  "NA1_4978566676",
+  "NA1_4978315995",
+  "NA1_4978242224",
+];
+
 const getEachMatchesData = async (numberOfMatchesToGet) => {
   let postgres = await pool.connect();
   let participants = {};
@@ -42,6 +50,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     }
   };
   await loadMatchesAndPlayers()
+  if(matchIds.length===0) matchIds = defaultList
   console.log('Initial Load complete')
 
   const getUnseenPlayerId = (playersObj) => {
