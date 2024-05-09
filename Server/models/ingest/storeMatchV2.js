@@ -80,6 +80,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       console.log('GOT PLAYER:', newId)
       return newId;
     }
+    console.log("PROBLEMO: UNSEEN PLAYER LIST IS EMPTY!!!")
   };
 
   const refreshMatches = async (playerId) => {
