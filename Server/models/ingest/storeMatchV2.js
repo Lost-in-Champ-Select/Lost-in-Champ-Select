@@ -439,6 +439,9 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 
     console.log(`${matchesSeen} Matches Seen this interval`);
   }
+  for (let key in participants) {
+    if (key === 0) delete participants[key];
+  }
   await storeUnseenMatchesPG();
   await storeUnseenPlayersPG();
   console.log(`MATCH INGESTION COMPLETE`);
@@ -503,7 +506,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 //   postgres.release()
 //   console.log(`new player obj is ${Object.keys(participants).length} entries`)
 // }
-//cleanPlayerObj()
+
 
 
 //cleans player obj of seen players before running fn
