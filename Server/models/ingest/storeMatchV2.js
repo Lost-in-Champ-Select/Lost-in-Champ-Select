@@ -85,9 +85,9 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   const refreshMatches = async (playerId) => {
     //! gets a players last NUM matches and returns the array of matches
     const playersMatchs = await apiCalls.getLastNumMatches(playerId, numberOfMatchesToGet); //? get last 10 matches
-    if (Array.isArray(playersMatchs)) {
-       participants[playerId] = 0
-    }
+    // if (Array.isArray(playersMatchs)) {
+    //    participants[playerId] = 0
+    // }
     return playersMatchs;
   };
 
