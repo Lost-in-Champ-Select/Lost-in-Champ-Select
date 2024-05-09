@@ -101,6 +101,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
         console.log(`new matches pulled:`, newMatches);
         return
       } else {
+        console.log(newMatches)
         console.log("ERROR GETTING NEW MATCHES TRYING AGAIN WITH NEW PLAYER");
         return;
       }
