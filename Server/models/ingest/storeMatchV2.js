@@ -25,38 +25,48 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   let matchIds = [];
   let matchesSeen = 0;
 
+
+  // TODO check if things are empty and give default values only if
+
   const loadMatchesAndPlayers = async () => {
     try {
       //! pull the last group of unseen matches from previous run
-      let unseenMatchList = await postgres.query(
-        "SELECT * FROM unseen_matches"
-      );
-      let updateUnseen = await JSON.parse(
-        unseenMatchList?.rows[0].matches_array
-      );
-      if (Array.isArray(updateUnseen)) matchIds = updateUnseen;
+      let isMatchesEmpty = await postgres.query("SELECT COUNT(*) FROM unseen_matches;")
+      if (isMatchesEmpty.rows[0].count === "0") {
+        matches = defaultMatches
+      } else {
+        let unseenMatchList = await postgres.query(
+          "SELECT * FROM unseen_matches"
+        );
+        let updateUnseen = await JSON.parse(
+          unseenMatchList?.rows[0].matches_array
+        );
+        if (Array.isArray(updateUnseen)) matchIds = updateUnseen;
+      }
     } catch (err) {
       console.log("error getting unseen matches array", err);
     }
 
     try {
       //! pull Object of unseen players
-      let unseenPlayersPG = await postgres.query(
-        "SELECT * FROM unseen_players"
-      );
-      let updatePlayers = await JSON.parse(unseenPlayersPG.rows[0].player);
-      if (Object.keys(updatePlayers).length > 0) participants = updatePlayers;
+      let isPlayersEmpty = await postgres.query("SELECT COUNT(*) FROM unseen_players;")
+      if (isPlayersEmpty.rows[0].count === "0") {
+        participants = {"2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w": 1};
+      } else {
+        let unseenPlayersPG = await postgres.query(
+          "SELECT * FROM unseen_players"
+        );
+        let updatePlayers = await JSON.parse(unseenPlayersPG.rows[0].player);
+        if (Object.keys(updatePlayers).length > 0) participants = updatePlayers;
+      }
     } catch (err) {
       console.log("Error getting players object", err);
     }
   };
 
-  if (matchIds.length === 0 && firstRun === true) {
-    matchIds = defaultMatches
-    firstRun = false
-  } else {
-    await loadMatchesAndPlayers()
-  }
+
+  await loadMatchesAndPlayers()
+
   console.log('Initial Load complete')
 
   const getUnseenPlayerId = (playersObj) => {
@@ -87,7 +97,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       const newMatches = await refreshMatches(unseenPlayer);
       if (Array.isArray(newMatches)) {
         matchIds = newMatches;
-        console.log(`Updated matchIds with these new matches:`, newMatches);
+        console.log(`new matches pulled:`, newMatches);
         return
       } else {
         console.log("ERROR GETTING NEW MATCHES TRYING AGAIN WITH NEW PLAYER");
@@ -391,7 +401,6 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
         "SELECT COUNT(*) FROM unseen_matches;"
       );
       let query = isEmpty.rows[0].count === "0" ? insert : update
-      console.log('QUERY::', query)
 
       let updateUnseenMatchIdsPG = await postgres.query(query,[matchIdsToString]);
       console.log(
