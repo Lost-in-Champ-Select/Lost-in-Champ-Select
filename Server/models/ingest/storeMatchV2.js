@@ -120,7 +120,9 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       let { info, metadata } = await getMatchById(currentMatch);
       //!guard clauses
       if (info?.gameType === "CUSTOM_GAME") return "SKIPPING CUSTOM MATCH";
-      if (metadata === undefined) return `problem fetching match ${currentMatch}`;
+      if (metadata === undefined || info.endOfGameResult === "Abort_Unexpected") {
+        return `problem fetching match ${currentMatch}`;
+      }
 
       if (Object.keys(participants).length < 100) {
         for (let i = 0; i < metadata.participants.length; i++) {
