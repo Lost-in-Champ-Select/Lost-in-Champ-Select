@@ -1,21 +1,21 @@
 import pg from 'pg'
 
 
-// const pool = new pg.Pool({
-//   host: 'localhost',
-//   user: 'lost_in_champ_select',
-//   database: 'league_matches',
-//   password: 'Gundam01',
-//   port: 5432
-// })
-
 const pool = new pg.Pool({
   host: 'localhost',
-  user: 'coryzauss',
+  user: 'lost_in_champ_select',
   database: 'league_matches',
-  password: 'password',
+  password: 'Gundam01',
   port: 5432
 })
+
+// const pool = new pg.Pool({
+//   host: 'localhost',
+//   user: 'coryzauss',
+//   database: 'league_matches',
+//   password: 'password',
+//   port: 5432
+// })
 
 export default pool;
 
