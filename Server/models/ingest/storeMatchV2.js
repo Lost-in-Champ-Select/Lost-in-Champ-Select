@@ -73,7 +73,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     //! gets an unseen player from an object of players
     for (let key in playersObj) {
       if (playersObj[key] === 0) continue
-      playersObj[key] = 0
+      // playersObj[key] = 0
       let newId = key
       //! set value in player obj to 0 signifying we have seen this player recently
      // delete playersObj[key]
@@ -81,14 +81,15 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       return newId;
     }
     console.log("PROBLEMO: UNSEEN PLAYER LIST IS EMPTY!!!")
+
   };
 
   const refreshMatches = async (playerId) => {
     //! gets a players last NUM matches and returns the array of matches
     const playersMatchs = await apiCalls.getLastNumMatches(playerId, numberOfMatchesToGet); //? get last 10 matches
-    // if (Array.isArray(playersMatchs)) {
-    //    participants[playerId] = 0
-    // }
+    if (Array.isArray(playersMatchs)) {
+       participants[playerId] = 0
+    }
     return playersMatchs;
   };
 
