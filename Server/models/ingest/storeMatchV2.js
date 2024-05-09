@@ -9,14 +9,15 @@ import process from "process"
 //let postgres = await pool.connect();
 let totalARAMMatches = 0;
 let totalCLASSICMatches = 0;
-
-let defaultList = [
-  "NA1_4978610029",
-  "NA1_4978585047",
-  "NA1_4978566676",
-  "NA1_4978315995",
-  "NA1_4978242224",
+let firstRun = true;
+let defaultMatches = [
+  "NA1_4974079281",
+  "NA1_4907194745",
+  "NA1_4980738714",
+  "NA1_4974098720",
+  "NA1_4980891892",
 ];
+// TODO: function must be able to run with no players or matches... see if theres a way to get a random player id at all times, maybe refactor for this
 
 const getEachMatchesData = async (numberOfMatchesToGet) => {
   let postgres = await pool.connect();
@@ -31,7 +32,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
         "SELECT * FROM unseen_matches"
       );
       let updateUnseen = await JSON.parse(
-        unseenMatchList.rows[0].matches_array
+        unseenMatchList?.rows[0].matches_array
       );
       if (Array.isArray(updateUnseen)) matchIds = updateUnseen;
     } catch (err) {
@@ -49,8 +50,13 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       console.log("Error getting players object", err);
     }
   };
-  await loadMatchesAndPlayers()
-  if(matchIds.length===0) matchIds = defaultList
+
+  if (matchIds.length === 0 && firstRun === true) {
+    matchIds = defaultMatches
+    firstRun = false
+  } else {
+    await loadMatchesAndPlayers()
+  }
   console.log('Initial Load complete')
 
   const getUnseenPlayerId = (playersObj) => {
@@ -60,6 +66,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       let newId = key
       //! set value in player obj to 0 signifying we have seen this player recently
      // delete playersObj[key]
+      console.log('GOT PLAYER:', newId)
       return newId;
     }
   };
@@ -80,7 +87,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       const newMatches = await refreshMatches(unseenPlayer);
       if (Array.isArray(newMatches)) {
         matchIds = newMatches;
-        console.log(`Updated matchIds with these new matches:${newMatches}`);
+        console.log(`Updated matchIds with these new matches:`, newMatches);
         return
       } else {
         console.log("ERROR GETTING NEW MATCHES TRYING AGAIN WITH NEW PLAYER");
@@ -107,6 +114,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
           if (playersObject[`${metadata.participants[i]}`] !== undefined) continue;
           playersObject[`${metadata.participants[i]}`] = 1;
         }
+        console.log('ADDED TO PLAYER OBJ; PLAYERS:',Object.keys(participants).length)
       }
 
       // TODO: store relevant data --> add more fields as project evloves
@@ -356,31 +364,39 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     //! updates the player object stored in pg
     try {
       let playerObjectToString = JSON.stringify(participants);
-      let updateUnseenPlayerObjPG = await postgres.query(
-        "UPDATE unseen_players SET player = ($1)",
-        [playerObjectToString]
-      );
+      let update = "UPDATE unseen_players SET player = ($1);"
+      let insert = "INSERT INTO unseen_players (player) VALUES ($1);"
+      let isEmpty = await postgres.query("SELECT COUNT(*) FROM unseen_players;")
+      let query = isEmpty.rows[0].count === "0" ? insert : update;
+
+      let updateUnseenPlayerObjPG = await postgres.query(query,[playerObjectToString]);
+
       console.log(
-        updateUnseenPlayerObjPG.command,
-        "to unseen players in PG Sucessful"
-      );
-    } catch (err) {
-      console.log("ERROR", err);
+          updateUnseenPlayerObjPG.command,
+          "to unseen players in PG Sucessful"
+          );
+        } catch (err) {
+          console.log("ERROR", err);
     }
   };
 
   const storeUnseenMatchesPG = async () => {
     //! store the extra unseen matches in pg for next time
     try {
-      console.log('storing:', matchIds)
       let matchIdsToString = JSON.stringify(matchIds);
-      let updateUnseenMatchIdsPG = await postgres.query(
-        "UPDATE unseen_matches SET matches_array = ($1)",
-        [matchIdsToString]
+      let update = "UPDATE unseen_matches SET matches_array = ($1);";
+      let insert = "INSERT INTO unseen_matches (matches_array) VALUES ($1);";
+
+      let isEmpty = await postgres.query(
+        "SELECT COUNT(*) FROM unseen_matches;"
       );
+      let query = isEmpty.rows[0].count === "0" ? insert : update
+      console.log('QUERY::', query)
+
+      let updateUnseenMatchIdsPG = await postgres.query(query,[matchIdsToString]);
       console.log(
-        updateUnseenMatchIdsPG.command,
-        "to unseen matches in PG Sucessful"
+      updateUnseenMatchIdsPG.command,
+      "to unseen matches in PG Sucessful"
       );
       console.log("Players Stored:", Object.keys(participants).length);
     } catch (err) {
@@ -401,10 +417,12 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     });
 
     let resolved = await Promise.all(matches);
-    console.log(resolved);
+    console.log('Resolved:',resolved);
     console.log(resolved.length, 'calls resolved');
     matchesRan += resolved.length;
     await refreshMatchIds()
+    console.log("PLAYER OBJ PLAYERS:", Object.keys(participants).length);
+    console.log('NEW MATCH IDS =', matchIds)
 
     console.log(`${matchesSeen} Matches Seen this interval`);
   }

@@ -5,7 +5,7 @@ const riotKey = process.env.RIOT_KEY;
 // import fetch from 'node-fetch'
 
 export async function getMatchById(id) {
-    const matchId = id;
+  const matchId = id;
     const  response  = await fetch(
       `https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${riotKey}`
     );
