@@ -441,10 +441,12 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 
     console.log(`${matchesSeen} Matches Seen this interval`);
   }
+  let count = 0
   for (let key in participants) {
     if (key === 0) delete participants[key];
-    console.log("deleted seen players from players object")
+    count += 1
   }
+  console.log(`deleted ${count} players from players object`)
   await storeUnseenMatchesPG();
   await storeUnseenPlayersPG();
   console.log(`MATCH INGESTION COMPLETE`);
