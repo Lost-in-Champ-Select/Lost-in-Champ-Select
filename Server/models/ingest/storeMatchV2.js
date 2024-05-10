@@ -443,6 +443,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   }
   for (let key in participants) {
     if (key === 0) delete participants[key];
+    console.log("deleted seen players from players object")
   }
   await storeUnseenMatchesPG();
   await storeUnseenPlayersPG();

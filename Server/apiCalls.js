@@ -18,10 +18,11 @@ export async function getMatchById(id) {
       return apiCalls.getMatchById(id)
     } else if (response.status === 403 | 401) {
        let error = {
-         status: 403,
+         status: response.status,
          message: `Did not recieve valid response, response recieved: 403`,
        };
-       throw new Error(error);
+       
+      throw new Error(error);
     } else {
       throw new Error(`Did not recieve valid response, response recieved: ${response.status}`)
 
