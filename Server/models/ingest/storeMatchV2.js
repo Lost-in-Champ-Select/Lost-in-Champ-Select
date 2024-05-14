@@ -81,9 +81,6 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       return unseenID;
     }
     console.log("PROBLEMO: UNSEEN PLAYER LIST IS EMPTY!!")
-    // participants = {
-    //   "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w": 1,
-    // };
 
   };
 
@@ -106,7 +103,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
         unseenPlayer = await getUnseenPlayerId(participants)
       }
       oldID = unseenPlayer
-      const newMatches = await refreshMatches(unseenPlayer, numberOfMatchesToGet);
+      let newMatches = await refreshMatches(unseenPlayer, numberOfMatchesToGet);
       if (Array.isArray(newMatches)) {
         matchIds = newMatches;
         console.log(`new matches pulled:`, newMatches);
