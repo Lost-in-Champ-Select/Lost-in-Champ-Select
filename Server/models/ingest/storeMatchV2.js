@@ -7,6 +7,8 @@ import process from "process"
 
 //! first open a connection to postgres and define some places to store data
 //let postgres = await pool.connect();
+let newID;
+let oldID;
 let totalARAMMatches = 0;
 let totalCLASSICMatches = 0;
 let firstRun = true;
@@ -73,12 +75,10 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     //! gets an unseen player from an object of players
     for (let key in playersObj) {
       if (playersObj[key] === 0) continue
-      // playersObj[key] = 0
-      let newId = key
-      //! set value in player obj to 0 signifying we have seen this player recently
-     // delete playersObj[key]
-      console.log('GOT PLAYER:', newId)
-      return newId;
+      let unseenID = key
+      newID = key
+      console.log('GOT PLAYER:', unseenID)
+      return unseenID;
     }
     console.log("PROBLEMO: UNSEEN PLAYER LIST IS EMPTY!!")
     // participants = {
@@ -100,6 +100,12 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     console.log("**  REFRESHING MATCH IDS  **");
     try {
       const unseenPlayer = await getUnseenPlayerId(participants);
+      if (oldID === newID) {
+        console.log('we should get here if we are stuck in A LOOOOP')
+        delete participants[oldID]
+        unseenPlayer = await getUnseenPlayerId(participants)
+      }
+      oldID = unseenPlayer
       const newMatches = await refreshMatches(unseenPlayer, numberOfMatchesToGet);
       if (Array.isArray(newMatches)) {
         matchIds = newMatches;
@@ -423,8 +429,10 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   };
 
   //!  calls api for each match, gets new list of matches from unseen player and repeat process until X games ingested
+  //? **************************WORK STARTS HERE **********************
   console.log("Requesting data for match Ids:", matchIds)
   let matchesRan = 0
+
   while (matchesRan < numberOfMatchesToGet) {
     let matches = [];
     matchIds.forEach(async(match) => {
