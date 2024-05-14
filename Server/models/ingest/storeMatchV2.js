@@ -96,7 +96,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
   const refreshMatchIds = async () => {
     console.log("**  REFRESHING MATCH IDS  **");
     try {
-      const unseenPlayer = await getUnseenPlayerId(participants);
+      let unseenPlayer = await getUnseenPlayerId(participants);
       if (oldID === newID) {
         console.log('we should get here if we are stuck in A LOOOOP')
         delete participants[oldID]
