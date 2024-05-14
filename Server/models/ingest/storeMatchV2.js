@@ -520,7 +520,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 //cleans player obj of seen players before running fn
 
 for (;;) {
-  await getEachMatchesData(20);
+  await getEachMatchesData(5);
   console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`);
   console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`);
 }
