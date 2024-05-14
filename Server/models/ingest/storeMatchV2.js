@@ -80,10 +80,10 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       console.log('GOT PLAYER:', newId)
       return newId;
     }
-    participants = {
-      "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w": 1,
-    };
-    console.log("PROBLEMO: UNSEEN PLAYER LIST IS EMPTY!!!")
+    console.log("PROBLEMO: UNSEEN PLAYER LIST IS EMPTY!!")
+    // participants = {
+    //   "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w": 1,
+    // };
 
   };
 
@@ -127,7 +127,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
         return `problem fetching match ${currentMatch}`;
       }
 
-      if (Object.keys(participants).length < 100) {
+      if (Object.keys(participants).length < 500) {
         for (let i = 0; i < metadata.participants.length; i++) {
           //! storing seen players in obj to draw from when out of matches
           if (playersObject[`${metadata.participants[i]}`] !== undefined) continue;
@@ -443,13 +443,13 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     console.log('NEW MATCH IDS =', matchIds)
 
     console.log(`${matchesSeen} Matches Seen this interval`);
+    let count = 0
+    for (let key in participants) {
+      if (key === 0) delete participants[key];
+      count += 1
+    }
+    console.log(`deleted ${count} players from players object`)
   }
-  let count = 0
-  for (let key in participants) {
-    if (key === 0) delete participants[key];
-    count += 1
-  }
-  console.log(`deleted ${count} players from players object`)
   await storeUnseenMatchesPG();
   await storeUnseenPlayersPG();
   console.log(`MATCH INGESTION COMPLETE`);
@@ -520,7 +520,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 //cleans player obj of seen players before running fn
 
 for (;;) {
-  await getEachMatchesData(5);
+  await getEachMatchesData(20);
   console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`);
   console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`);
 }
