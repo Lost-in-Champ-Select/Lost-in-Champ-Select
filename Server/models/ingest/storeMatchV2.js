@@ -109,7 +109,10 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
         console.log(`new matches pulled:`, newMatches);
         return
       } else {
-        console.log(newMatches)
+        if (newMatches.status_code === 403) {
+          console.log(`Recieved 403 from RIOT, exiting script`);
+          process.exit(1);
+        }
         console.log("ERROR GETTING NEW MATCHES TRYING AGAIN WITH NEW PLAYER");
         return;
       }
