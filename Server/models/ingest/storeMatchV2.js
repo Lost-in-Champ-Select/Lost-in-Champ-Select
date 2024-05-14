@@ -80,13 +80,16 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
       console.log('GOT PLAYER:', newId)
       return newId;
     }
+    participants = {
+      "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w": 1,
+    };
     console.log("PROBLEMO: UNSEEN PLAYER LIST IS EMPTY!!!")
 
   };
 
-  const refreshMatches = async (playerId) => {
+  const refreshMatches = async (playerId, callXMatches) => {
     //! gets a players last NUM matches and returns the array of matches
-    const playersMatchs = await apiCalls.getLastNumMatches(playerId, numberOfMatchesToGet); //? get last 10 matches
+    const playersMatchs = await apiCalls.getLastNumMatches(playerId, callXMatches); //? get last 10 matches
     if (Array.isArray(playersMatchs)) {
        participants[playerId] = 0
     }
@@ -97,7 +100,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
     console.log("**  REFRESHING MATCH IDS  **");
     try {
       const unseenPlayer = await getUnseenPlayerId(participants);
-      const newMatches = await refreshMatches(unseenPlayer);
+      const newMatches = await refreshMatches(unseenPlayer, numberOfMatchesToGet);
       if (Array.isArray(newMatches)) {
         matchIds = newMatches;
         console.log(`new matches pulled:`, newMatches);
@@ -349,7 +352,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
 
 
     } catch (err) {
-      console.log("ERROR GETTING MATCH", err)
+      console.log("ERROR GETTING MATCH", currentMatch, err.message, err.status)
       return 403
     }
   };

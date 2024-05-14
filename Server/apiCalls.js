@@ -15,13 +15,13 @@ export async function getMatchById(id) {
       const retry = response.headers.get("Retry-After")
       console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`)
       await new Promise((resolve) => setTimeout(resolve, retry * 1000));
-      return apiCalls.getMatchById(id)
+      return getMatchById(id)
     } else if (response.status === 403 | 401) {
        let error = {
          status: response.status,
-         message: `Did not recieve valid response, response recieved: 403`,
+         message: `Did not recieve valid response, response recieved: ${response.status}`,
        };
-       
+
       throw new Error(error);
     } else {
       throw new Error(`Did not recieve valid response, response recieved: ${response.status}`)
