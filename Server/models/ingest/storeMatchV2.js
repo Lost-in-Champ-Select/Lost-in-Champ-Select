@@ -113,7 +113,7 @@ const getEachMatchesData = async (numberOfMatchesToGet) => {
           console.log(`Recieved 403 from RIOT, exiting script`);
           process.exit(1);
         }
-        console.log("ERROR GETTING NEW MATCHES TRYING AGAIN WITH NEW PLAYER");
+        console.log(`ERROR refreshMatchIds: ${newMatches}`);
         return;
       }
     } catch (err) {
