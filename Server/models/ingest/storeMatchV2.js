@@ -19,7 +19,7 @@ let defaultMatches = [
   "NA1_4974098720",
   "NA1_4980891892",
 ];
-// TODO: function must be able to run with no players or matches... see if theres a way to get a random player id at all times, maybe refactor for this
+// TODO:  pull every player we see last 20 games and store in a object instead of storing all the players , giving us a massive match id list to always pull from
 
 const getEachMatchesData = async (numberOfMatchesToGet) => {
   let postgres = await pool.connect();
