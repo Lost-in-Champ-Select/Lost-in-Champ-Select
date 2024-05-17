@@ -30,16 +30,32 @@ export async function getMatchById(id) {
 
 }
 
-export async function getLastNumMatches(playerId, numMatches) => {
-  const data = await fetch(
+export async function getLastNumMatches(playerId, numMatches){
+  const response = await fetch(
     `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?start=0&count=${numMatches}&api_key=${riotKey}`
   );
-  let data2 = await data.json()
-  return data2;
+  if (response.status === 200) {
+      return await response.json();
+    } else if (response.status === 429) {
+      const retry = response.headers.get("Retry-After")
+      console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`)
+      await new Promise((resolve) => setTimeout(resolve, retry * 1000));
+      return getLastNumMatches(playerId,numMatches)
+    } else if (response.status === 403 | 401) {
+       let error = {
+         status: response.status,
+         message: `Did not recieve valid response, response recieved: ${response.status}`,
+       };
+
+      throw new Error(error);
+    } else {
+      throw new Error(`Did not recieve valid response, response recieved: ${response.status}`)
+
+    }
   }
 
 
-export async function getLiveMatch (req, res) => {
+export async function getLiveMatch (req, res) {
   let sumId = req.params.sumId;
   let region = req.params.region;
   let data;
@@ -56,7 +72,7 @@ export async function getLiveMatch (req, res) => {
   }
 }
 
-export async function getAccountBySummonerName (req, res) => {
+export async function getAccountBySummonerName (req, res) {
   let summoner = req.params.name;
   let region = req.params.region;
   let { data } = await fetch(
@@ -65,7 +81,7 @@ export async function getAccountBySummonerName (req, res) => {
   res.send(data);
 }
 
-export async function getAccountByRiotId (req, res) => {
+export async function getAccountByRiotId (req, res) {
   let summoner = req.params.name;
   let tag = req.params.tag;
   const { data } = await fetch(

@@ -273,7 +273,7 @@ const getEachMatchesData = async () => {
   };
 
   //! start with an unseen match from the PG list (next one in line set to False)
-  // TODO: if no seen matches start with initial player and pull last 20 games thru a function
+  //! if no seen matches start with initial player and pull last 20 games thru a function
   let initialMatches = postgres.query("SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;")
   if (initialMatches.rows.length === 0) {
     getMatchIdHistoryAndStore(initialPlayer, 20);
@@ -287,7 +287,7 @@ const getEachMatchesData = async () => {
 
   // TODO: parsedMatches needs to be stored in clickhouse
   // TODO: run a count and keep concatting the parsed games into a big array to insert 100 at a time
-  // TODO:
+  // TODO:possibly just run the batch when we get rate limited. make use of downtime?
 
   await postgres.release();
   console.log("PG CLOSED");
