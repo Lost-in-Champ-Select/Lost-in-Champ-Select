@@ -18,7 +18,7 @@ async function connectToPostgreSQL() {
   }
 }
 
-const getEachMatchesData = async (matchesPerPlayer) => {
+const getEachMatchesData = async () => {
   let initialPlayer =
     "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w";
   let playerIds = new Set();
@@ -346,7 +346,7 @@ const getEachMatchesData = async (matchesPerPlayer) => {
 
   console.log(`*** GETTING HISTORY ${playerIds.size} PLAYERS ***`);
   playerIds.forEach(async (id) => {
-    await getMatchIdHistoryAndStore(id, matchesPerPlayer);
+    await getMatchIdHistoryAndStore(id, 10);
     playerIds.delete(id);
   });
   await postgres.release();
@@ -356,7 +356,7 @@ const getEachMatchesData = async (matchesPerPlayer) => {
 // getEachMatchesData(10);
 
 for (;;) {
-  await getEachMatchesData(5);
+  await getEachMatchesData();
   console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`);
   console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`);
 }
