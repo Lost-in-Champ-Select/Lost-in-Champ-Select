@@ -18,15 +18,12 @@ async function connectToPostgreSQL() {
   }
 }
 
-
 const getEachMatchesData = async (matchesPerPlayer) => {
   let initialPlayer =
     "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w";
   let playerIds = new Set();
 
   const getMatchIdHistoryAndStore = async (playerId, numMatches) => {
-    // console.log(" GETTING MATCH HISTORY FOR ", playerId);
-    // let pg2 = await connectToPostgreSQL();
     let playerHistory = await getLastNumMatches(playerId, numMatches);
     if (!Array.isArray(playerHistory)) {
       console.log("getMatchIdHistoryAndStore ERROR");
@@ -43,10 +40,8 @@ const getEachMatchesData = async (matchesPerPlayer) => {
     } catch (err) {
       console.log(err);
     } finally {
-      // await pg2.release()
-      // console.log("PG CLOSED");
+      console.log("Batched current players last 20 into PG");
     }
-    console.log("Batched current players last 20 into PG");
   };
 
   //! take an array of matchIds, await the call for all their match datas and build an object to batch insert some may still be promise
@@ -65,19 +60,16 @@ const getEachMatchesData = async (matchesPerPlayer) => {
   };
 
   const parseMatchData = async (promiseArray) => {
-    console.log("parseMatchData START");
     let matches = await Promise.all(promiseArray);
     let parsed = [];
 
     matches.forEach((match) => {
-      if(typeof(match) === 'string') return
+      if (typeof match === "string") return;
       let { info, metadata } = match;
-      if (info?.gameType === "CUSTOM_GAME") return
-      if (
-        metadata === undefined ||
-        info.endOfGameResult === "Abort_Unexpected"
-      ) return
-      
+      if (info?.gameType === "CUSTOM_GAME") return;
+      if (metadata === undefined || info.endOfGameResult === "Abort_Unexpected")
+        return;
+
       let parsedMatchData = {
         game_id: info.gameId,
         match_id: metadata.matchId,
@@ -277,8 +269,11 @@ const getEachMatchesData = async (matchesPerPlayer) => {
       // metadata.participants.forEach((player) => {
       //   playerIds.add(player);
       // });
-      const randomNumber = Math.floor(Math.random() * 10);
-      playerIds.add(info.participants[randomNumber].puuid)
+      //! for now limiting the num of players i will call match ids for at the end
+      if (playerIds.size < 50) {
+        const randomNumber = Math.floor(Math.random() * 10);
+        playerIds.add(info.participants[randomNumber].puuid);
+      }
     });
     return parsed;
   };
@@ -291,13 +286,13 @@ const getEachMatchesData = async (matchesPerPlayer) => {
 
     matchDataArray.forEach((match) => {
       if (match.game_mode === "ARAM") {
-        insertAram.push(match)
-        arams += 1
-      } else if (match.game_mode){
+        insertAram.push(match);
+        arams += 1;
+      } else if (match.game_mode) {
         insertSR.push(match);
         sr += 1;
       } else {
-        console.log("THIS MATCH IS ODD: ", match)
+        console.log("THIS MATCH IS ODD: ", match);
       }
     });
 
@@ -325,34 +320,37 @@ const getEachMatchesData = async (matchesPerPlayer) => {
     totalARAMMatches += arams;
   };
 
-  let postgres = await connectToPostgreSQL()
-
-  let initialMatches = await postgres.query(
-    "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
-  );
-  if (initialMatches.rows.length === 0) {
-    console.log("NO MATCHES FROM PG CALLING INIT PLAYER");
-    await getMatchIdHistoryAndStore(initialPlayer, 10);
-    initialMatches = await postgres.query(
-      "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 10;"
+  //! ********************************** WORK STARTS HERE **********************************
+  let postgres = await connectToPostgreSQL();
+  let count = 0;
+  while (count < 20) {
+    let initialMatches = await postgres.query(
+      "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
     );
+    if (initialMatches.rows.length === 0) {
+      console.log("NO MATCHES FROM PG CALLING INIT PLAYER");
+      await getMatchIdHistoryAndStore(initialPlayer, 10);
+      initialMatches = await postgres.query(
+        "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 10;"
+      );
+    }
+
+    let matchData = callMultipleMatchesData(initialMatches);
+    let parsedData = await parseMatchData(matchData);
+    await batchInsertMatchesClickhouse(parsedData);
+    count += 1
+    console.log(`${count} ITERATIONS `)
   }
 
-  let matchData = callMultipleMatchesData(initialMatches);
-  let parsedData = await parseMatchData(matchData);
-  await batchInsertMatchesClickhouse(parsedData);
-  // await postgres.release()
-  // console.log("PG CLOSED")
-  console.log("**match ingestion end**")
+  console.log("**match ingestion end**");
 
   console.log(`*** GETTING HISTORY ${playerIds.size} PLAYERS ***`);
-  playerIds.forEach(async(id) => {
+  playerIds.forEach(async (id) => {
     await getMatchIdHistoryAndStore(id, matchesPerPlayer);
     playerIds.delete(id);
   });
-  await postgres.release()
-  console.log("PG CLOSED")
-
+  await postgres.release();
+  console.log("PG CLOSED");
 };
 
 // getEachMatchesData(10);
