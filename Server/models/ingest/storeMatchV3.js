@@ -7,16 +7,16 @@ import process from "process"
 let totalARAMMatches = 0;
 let totalCLASSICMatches = 0;
 
-const getEachMatchesData = async () => {
+const getEachMatchesData = async (matchesPerPlayer) => {
   //! first open a connection to postgres and define some places to store data
   let postgres = await pool.connect();
   let initialPlayer =
     "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w";
-  let playerIds = new Set()
+  let playerIds = new Set();
 
   //! FN will get last 20 and store them into PG
   const getMatchIdHistoryAndStore = async (playerId, numMatches) => {
-    console.log(" GETTING MATCH HISTORY FOR ", playerId)
+    console.log(" GETTING MATCH HISTORY FOR ", playerId);
     let playerHistory = await getLastNumMatches(playerId, numMatches);
     if (!Array.isArray(playerHistory)) {
       console.log("getMatchIdHistoryAndStore ERROR");
@@ -29,7 +29,6 @@ const getEachMatchesData = async () => {
     try {
       query = query.slice(0, query.length - 1);
       query += " ON CONFLICT (match_id) DO NOTHING";
-      console.log(query)
       postgres.query(query);
     } catch (err) {
       console.log(err);
@@ -39,32 +38,34 @@ const getEachMatchesData = async () => {
 
   //! take an array of matchIds, await the call for all their match datas and build an object to batch insert some may still be promise
   const callMultipleMatchesData = (matchIdArray) => {
-    console.log("getMatchDataAndParse START ");
     let promises = [];
-    matchIdArray.rows.forEach( (matchObj) => {
-      let currentMatch = matchObj.match_id
+    matchIdArray.rows.forEach((matchObj) => {
+      let currentMatch = matchObj.match_id;
       console.log("FETCHING DATA FOR MATCH::", currentMatch);
-      promises.push(getMatchById(currentMatch))
+      promises.push(getMatchById(currentMatch));
       postgres.query("UPDATE matches SET seen = TRUE WHERE match_id = ($1);", [
         currentMatch,
       ]);
     });
     //! return a list of promises to parse
-    return promises
+    return promises;
   };
 
   const parseMatchData = async (promiseArray) => {
-    console.log("parseMatchData START")
-    let matches = await Promise.all(promiseArray)
+    console.log("parseMatchData START");
+    let matches = await Promise.all(promiseArray);
     let parsed = [];
 
-    matches.forEach(match => {
+    matches.forEach((match) => {
       let { info, metadata } = match;
       if (info?.gameType === "CUSTOM_GAME") {
         parsed.push("SKIPPING CUSTOM MATCH");
-      };
-      if (metadata === undefined || info.endOfGameResult === "Abort_Unexpected") {
-        parsed.push( `${metadata.matchId} not valid match`)
+      }
+      if (
+        metadata === undefined ||
+        info.endOfGameResult === "Abort_Unexpected"
+      ) {
+        parsed.push(`${metadata.matchId} not valid match`);
       }
       let parsedMatchData = {
         game_id: info.gameId,
@@ -262,38 +263,24 @@ const getEachMatchesData = async () => {
         team2_champ5_level: info.participants[9]?.champLevel,
       };
       parsed.push(parsedMatchData);
-      metadata.participants.forEach(player => {
-        playerIds.add(player)
-      })
-    })
-     return parsed
-  }
-
+      metadata.participants.forEach((player) => {
+        playerIds.add(player);
+      });
+    });
+    return parsed;
+  };
 
   const batchInsertMatchesClickhouse = async (matchDataArray) => {
-    console.log("batchInsertMatchesClickhouse START");
-    let arams = 0
-    let sr = 0
-    // let insertAram = "INSERT INTO aram_matches FORMAT JSONEachRow VALUES "
-    // let insertSR = "INSERT INTO classic_matches FORMAT JSONEachRow VALUES ";
+    let arams = 0;
+    let sr = 0;
+    let insertAram = [];
+    let insertSR = [];
 
-    let insertAram = []
-    let insertSR = []
     matchDataArray.forEach((match) => {
-
       match.game_mode === "ARAM"
         ? insertAram.push(match)
-        : insertSR.push(match)
-    })
-    // matchDataArray.forEach((match) => {
-    //   let matchAsStr = JSON.stringify(match)
-    //   match.game_mode === "ARAM"
-    //     ? insertAram += `(${matchAsStr}),`
-    //     : insertSR += `('${matchAsStr}'),`;
-    //   })
-
-    // insertAram = insertAram.slice(0, insertAram.length - 1);
-    // insertSR = insertSR.slice(0, insertSR.length - 1);
+        : insertSR.push(match);
+    });
 
     try {
       let result = await client.insert({
@@ -301,9 +288,9 @@ const getEachMatchesData = async () => {
         values: [insertAram],
         format: "JSONEachRow",
       });
-      arams +=1
+      arams += 1;
     } catch (error) {
-        console.error('Error inserting ARAM:', error);
+      console.error("Error inserting ARAM:", error);
     }
 
     try {
@@ -312,48 +299,44 @@ const getEachMatchesData = async () => {
         values: [insertSR],
         format: "JSONEachRow",
       });
-      sr +=1
+      sr += 1;
     } catch (error) {
       console.error("Error inserting SR:", error);
     }
-    console.log(`inserted ${arams} ARAM matches and ${sr} CLASSIC matches`)
+    console.log(`inserted ${arams} ARAM matches and ${sr} CLASSIC matches`);
     totalCLASSICMatches += sr;
     totalARAMMatches += arams;
   };
 
-  //! start with an unseen match from the PG list (next one in line set to False)
-  //! if no seen matches start with initial player and pull last 20 games thru a function
-  let initialMatches = await  postgres.query("SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;")
+  let initialMatches = await postgres.query(
+    "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
+  );
   if (initialMatches.rows.length === 0) {
-    console.log("NO MATCHES FROM PG CALLING INIT PLAYER")
-    await getMatchIdHistoryAndStore(initialPlayer, 20);
-    initialMatches = await postgres.query("SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;");
+    console.log("NO MATCHES FROM PG CALLING INIT PLAYER");
+    await getMatchIdHistoryAndStore(initialPlayer, 10);
+    initialMatches = await postgres.query(
+      "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 10;"
+    );
   }
-  //! call for the match data of all the matches and parse the info as long as it passes edge tests (built into funct)
-  let matchData = callMultipleMatchesData(initialMatches)
-  let parsedData = await parseMatchData(matchData)
-  //! get all the players match histories and load up pg
-  playerIds.forEach(id => {
-    getMatchIdHistoryAndStore(id, 20)
-    playerIds.delete(id)
+  let matchData = callMultipleMatchesData(initialMatches);
+  let parsedData = await parseMatchData(matchData);
+
+  playerIds.forEach((id) => {
+    getMatchIdHistoryAndStore(id, matchesPerPlayer);
+    playerIds.delete(id);
   });
-
-  // TODO: parsedMatches needs to be stored in clickhouse
-  await batchInsertMatchesClickhouse(parsedData)
-  // TODO: run a count and keep concatting the parsed games into a big array to insert 100 at a time
-  // TODO:possibly just run the batch when we get rate limited. make use of downtime?
+  await batchInsertMatchesClickhouse(parsedData);
 
 
+};
 
+// getEachMatchesData(10);
 
-  await postgres.release();
-  console.log("PG CLOSED");
+for (;;) {
+  await getEachMatchesData(5);
+  console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`);
+  console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`);
 }
 
-getEachMatchesData();
-
-// for (;;) {
-//   await getEachMatchesData();
-//   console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`);
-//   console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`);
-// }
+await postgres.release();
+console.log("PG CLOSED");
