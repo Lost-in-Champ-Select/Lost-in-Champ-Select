@@ -22,6 +22,7 @@ export async function getMatchById(id) {
          message: `Did not recieve valid response, response recieved: ${response.status}`,
        };
       // return `skipMatch`;
+      console.log(error)
       throw new Error(error);
     } else {
       // return `skipMatch`;

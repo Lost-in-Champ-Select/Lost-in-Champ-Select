@@ -270,7 +270,7 @@ const getEachMatchesData = async () => {
       //   playerIds.add(player);
       // });
       //! for now limiting the num of players i will call match ids for at the end
-      if (playerIds.size < 50) {
+      if (playerIds.size < 100) {
         const randomNumber = Math.floor(Math.random() * 10);
         playerIds.add(info.participants[randomNumber].puuid);
       }
@@ -329,7 +329,7 @@ const getEachMatchesData = async () => {
     );
     if (initialMatches.rows.length === 0) {
       console.log("NO MATCHES FROM PG CALLING INIT PLAYER");
-      await getMatchIdHistoryAndStore(initialPlayer, 10);
+      await getMatchIdHistoryAndStore(initialPlayer, 20);
       initialMatches = await postgres.query(
         "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 10;"
       );
