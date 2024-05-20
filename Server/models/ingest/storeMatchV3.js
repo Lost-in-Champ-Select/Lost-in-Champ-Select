@@ -3,6 +3,7 @@ import client from "./clickhouse.js";
 import pool from "./pg.js";
 import { getMatchById, getLastNumMatches } from "../../apiCalls.js";
 import process from "process"
+import puuuidObj from "../../database/puuidFallback.js"
 
 let totalARAMMatches = 0;
 let totalCLASSICMatches = 0;
@@ -46,10 +47,10 @@ const getEachMatchesData = async () => {
 
   //! take an array of matchIds, await the call for all their match datas and build an object to batch insert some may still be promise
   const callMultipleMatchesData = (matchIdArray) => {
+    console.log("FETCHING DATA FOR MATCHES:", matchIdArray);
     let promises = [];
     matchIdArray.rows.forEach((matchObj) => {
       let currentMatch = matchObj.match_id;
-      console.log("FETCHING DATA FOR MATCH::", currentMatch);
       promises.push(getMatchById(currentMatch));
       postgres.query("UPDATE matches SET seen = TRUE WHERE match_id = ($1);", [
         currentMatch,
@@ -322,25 +323,34 @@ const getEachMatchesData = async () => {
 
   //! ********************************** WORK STARTS HERE **********************************
   let postgres = await connectToPostgreSQL();
-  let count = 0;
-  while (count < 20) {
+  // let count = 0;
+  // while (count < 20) {
     let initialMatches = await postgres.query(
       "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
     );
-    if (initialMatches.rows.length === 0) {
+
+  while (initialMatches.rows.length === 0) {
+    if (puuidObj[initialPlayer] === true) {
+      for (key in puuidObj) {
+        if (puuidObj[key] === true) continue;
+        initialPlayer = key
+        break;
+        }
+      }
       console.log("NO MATCHES FROM PG CALLING INIT PLAYER");
       await getMatchIdHistoryAndStore(initialPlayer, 20);
       initialMatches = await postgres.query(
-        "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 10;"
+        "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
       );
+      puuuidObj[initialPlayer] = true
     }
 
     let matchData = callMultipleMatchesData(initialMatches);
     let parsedData = await parseMatchData(matchData);
     await batchInsertMatchesClickhouse(parsedData);
-    count += 1
-    console.log(`${count} ITERATIONS `)
-  }
+    // count += 1
+    // console.log(`${count} ITERATIONS `)
+  // }
 
   console.log("**match ingestion end**");
 
@@ -357,8 +367,15 @@ const getEachMatchesData = async () => {
 
 for (;;) {
   await getEachMatchesData();
-  console.log(`Total ARAM Matches Ingested: ${totalARAMMatches}`);
-  console.log(`Total CLASSIC Matches Ingested: ${totalCLASSICMatches}`);
+  console.log(`
+  ********* ********* ********* ********* ********* ********* ********* ********* *********
+  ********* ********* ********* ********* ********* ********* ********* ********* *********
+  Total ARAM Matches Ingested: ${totalARAMMatches}
+  Total CLASSIC Matches Ingested: ${totalCLASSICMatches}
+  ********* ********* ********* ********* ********* ********* ********* ********* *********
+  ********* ********* ********* ********* ********* ********* ********* ********* *********
+  `);
+
 }
 
 
@@ -366,3 +383,7 @@ for (;;) {
 //!RATE LIMITS
 //! 20 requests every 1 seconds(s)
 //! 100 requests every 2 minutes(s)
+
+
+// TODO ISSUES
+//? need it to stop looking up matches if requests arent coming back
