@@ -267,7 +267,7 @@ const getEachMatchesData = async () => {
       };
       parsed.push(parsedMatchData);
       //! for now limiting the num of players i will call match ids for at the end
-      if (playerIds.size < 100) {
+      if (playerIds.size < 50) {
         const randomNumber = Math.floor(Math.random() * 10);
         playerIds.add(info.participants[randomNumber].puuid);
       }
