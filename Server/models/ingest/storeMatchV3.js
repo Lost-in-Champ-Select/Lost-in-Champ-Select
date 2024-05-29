@@ -47,13 +47,12 @@ const getEachMatchesData = async () => {
   };
 
   //! take an array of matchIds, await the call for all their match datas and build an object to batch insert some may still be promise
-  const callMultipleMatchesData = async (matchIdArray) => {
+  const callMultipleMatchesData =  (matchIdArray) => {
     console.log("FETCHING DATA FOR MATCHES:", matchIdArray.rows);
     let promises = [];
-    let matchesSeen = [];
-    matchIdArray.rows.forEach(async(matchObj) => {
+    matchIdArray.rows.forEach((matchObj) => {
       let currentMatch = matchObj.match_id;
-
+      promises.push(getMatchById(currentMatch))
     });
     //! return a list of promises to parse
     return promises;
