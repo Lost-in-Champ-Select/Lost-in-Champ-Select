@@ -7,12 +7,13 @@ import puuuidObj from "../../database/puuidFallback.js"
 
 let totalARAMMatches = 0;
 let totalCLASSICMatches = 0;
+let breakLoop = false;
+let postgres;
 
 async function connectToPostgreSQL() {
   try {
-    const client = await pool.connect();
+    postgres = await pool.connect();
     console.log("Connected to PostgreSQL.");
-    return client;
   } catch (error) {
     console.error("Error connecting to PostgreSQL:", error.message);
     throw error; // Rethrow the error to handle it at a higher level
@@ -46,15 +47,13 @@ const getEachMatchesData = async () => {
   };
 
   //! take an array of matchIds, await the call for all their match datas and build an object to batch insert some may still be promise
-  const callMultipleMatchesData = (matchIdArray) => {
+  const callMultipleMatchesData = async (matchIdArray) => {
     console.log("FETCHING DATA FOR MATCHES:", matchIdArray.rows);
     let promises = [];
-    matchIdArray.rows.forEach((matchObj) => {
+    let matchesSeen = [];
+    matchIdArray.rows.forEach(async(matchObj) => {
       let currentMatch = matchObj.match_id;
-      promises.push(getMatchById(currentMatch));
-      postgres.query("UPDATE matches SET seen = TRUE WHERE match_id = ($1);", [
-        currentMatch,
-      ]);
+
     });
     //! return a list of promises to parse
     return promises;
@@ -63,10 +62,11 @@ const getEachMatchesData = async () => {
   const parseMatchData = async (promiseArray) => {
     let matches = await Promise.all(promiseArray);
     let parsed = [];
-
+    let matchIdsSeen = [];
     matches.forEach((match) => {
       if (typeof match === "string") return;
       let { info, metadata } = match;
+      matchIdsSeen.push(metadata?.matchId);
       if (info?.gameType === "CUSTOM_GAME") return;
       if (metadata === undefined || info.endOfGameResult === "Abort_Unexpected")
         return;
@@ -267,15 +267,13 @@ const getEachMatchesData = async () => {
         team2_champ5_level: info.participants[9]?.champLevel,
       };
       parsed.push(parsedMatchData);
-      // metadata.participants.forEach((player) => {
-      //   playerIds.add(player);
-      // });
       //! for now limiting the num of players i will call match ids for at the end
       if (playerIds.size < 100) {
         const randomNumber = Math.floor(Math.random() * 10);
         playerIds.add(info.participants[randomNumber].puuid);
       }
     });
+    await postgres.query("UPDATE matches SET seen = TRUE WHERE match_id = ANY($1)",[matchIdsSeen]);
     return parsed;
   };
 
@@ -322,12 +320,11 @@ const getEachMatchesData = async () => {
   };
 
   //! ********************************** WORK STARTS HERE **********************************
-  let postgres = await connectToPostgreSQL();
-  // let count = 0;
-  // while (count < 20) {
-    let initialMatches = await postgres.query(
+  await connectToPostgreSQL();
+
+  let initialMatches = await postgres.query(
       "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
-    );
+  );
 
   while (initialMatches.rows.length === 0) {
     if (puuidObj[initialPlayer] === true) {
@@ -345,27 +342,29 @@ const getEachMatchesData = async () => {
       puuuidObj[initialPlayer] = true
     }
 
-    let matchData = callMultipleMatchesData(initialMatches);
-    let parsedData = await parseMatchData(matchData);
-    await batchInsertMatchesClickhouse(parsedData);
-    // count += 1
-    // console.log(`${count} ITERATIONS `)
-  // }
+  let matchData = callMultipleMatchesData(initialMatches);
+  let parsedData = await parseMatchData(matchData);
+  await batchInsertMatchesClickhouse(parsedData);
 
   console.log("**match ingestion end**");
 
   console.log(`*** GETTING HISTORY ${playerIds.size} PLAYERS ***`);
+
   playerIds.forEach(async (id) => {
     await getMatchIdHistoryAndStore(id, 10);
     playerIds.delete(id);
   });
-  await postgres.release();
-  console.log("PG CLOSED");
+
 };
 
 // getEachMatchesData(10);
 
-for (;;) {
+for (; ;) {
+  if (breakLoop) {
+    await postgres.release();
+    console.log("PG CLOSED");
+    break;
+  }
   await getEachMatchesData();
   console.log(`
   ********* ********* ********* ********* ********* ********* ********* ********* *********
