@@ -50,7 +50,7 @@ const getEachMatchesData = async () => {
   const storePlayerIds = async (playersArray) => {
     try {
       await postgres.query('BEGIN');
-      playersArray.forEach(player => {
+      playersArray.forEach(async(player) => {
       await postgres.query(
         "INSERT INTO players (player_id) VALUES ($1)",
         [player]
