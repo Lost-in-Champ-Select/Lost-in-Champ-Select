@@ -107,7 +107,11 @@ const getEachMatchesData = async () => {
     let matchIdsSeen = [];
     let playerIds = new Set()
     matches.forEach((match) => {
-      if (typeof match === "string") return;
+      if (typeof match === "string") {
+        console.log(`GOT ${match.status} FROM RIOT`)
+        matchIdsSeen.push(match.match)
+        return;
+      }
       let { info, metadata } = match;
       matchIdsSeen.push(metadata?.matchId);
       if (info?.gameType === "CUSTOM_GAME") return;
