@@ -56,7 +56,7 @@ const getEachMatchesData = async () => {
         [player]
       );
         console.log(`batch ${player}`)
-      }))
+      })
       await postgres.query('COMMIT');
       console.log("insert players success")
     } catch (error) {
