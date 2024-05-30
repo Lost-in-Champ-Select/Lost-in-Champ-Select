@@ -10,3 +10,8 @@ CREATE TABLE matches (
     seen BOOLEAN DEFAULT FALSE
 );
 
+CREATE TABLE players (
+    id SERIAL PRIMARY KEY,
+    player_id VARCHAR(255) UNIQUE,
+    seen BOOLEAN DEFAULT FALSE
+);

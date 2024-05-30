@@ -20,10 +20,11 @@ async function connectToPostgreSQL() {
   }
 }
 
+await connectToPostgreSQL();
+
 const getEachMatchesData = async () => {
   let initialPlayer =
     "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w";
-  let playerIds = new Set();
 
   const getMatchIdHistoryAndStore = async (playerId, numMatches) => {
     let playerHistory = await getLastNumMatches(playerId, numMatches);
@@ -46,6 +47,49 @@ const getEachMatchesData = async () => {
     }
   };
 
+  const storePlayerIds = async (playersArray) => {
+    try {
+      await postgres.query('BEGIN');
+      playersArray.forEach(player => {
+      await postgres.query(
+        "INSERT INTO players (player_id) VALUES ($1)",
+        [player]
+      );
+        console.log(`batch ${player}`)
+      }))
+      await postgres.query('COMMIT');
+      console.log("insert players success")
+    } catch (error) {
+      await postgres.query('ROLLBACK');
+      console.error("Error inserting players:", error);
+    }
+  }
+
+  const loadMatchesOrGetMore = async () => {
+    let loadMatches = await postgres.query(
+      "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
+    );
+
+    if (loadMatches.rows.length === 0) {
+      console.log("NO MATCHES FROM PG GETTING MORE FROM NEW PLAYERS");
+      let players = await postgres.query(
+        "SELECT player_id FROM players WHERE seen = FALSE LIMIT 20"
+      );
+      players.forEach(async (id) => {
+        try {
+          await getMatchIdHistoryAndStore(id, 20);
+          await postgres.query("UPDATE players SET seen = TRUE WHERE player_id = ($1)", [id])
+        } catch (err) {
+          console.log("ERROR IN loadMatchesOrGetMore", err)
+        }
+      });
+      loadMatches = await postgres.query(
+        "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
+      );
+    }
+    return loadMatches
+  }
+
   //! take an array of matchIds, await the call for all their match datas and build an object to batch insert some may still be promise
   const callMultipleMatchesData =  (matchIdArray) => {
     console.log("FETCHING DATA FOR MATCHES:", matchIdArray.rows);
@@ -62,6 +106,7 @@ const getEachMatchesData = async () => {
     let matches = await Promise.all(promiseArray);
     let parsed = [];
     let matchIdsSeen = [];
+    let playerIds = new Set()
     matches.forEach((match) => {
       if (typeof match === "string") return;
       let { info, metadata } = match;
@@ -267,12 +312,15 @@ const getEachMatchesData = async () => {
       };
       parsed.push(parsedMatchData);
       //! for now limiting the num of players i will call match ids for at the end
-      if (playerIds.size < 50) {
-        const randomNumber = Math.floor(Math.random() * 10);
-        playerIds.add(info.participants[randomNumber].puuid);
-      }
+
+      metadata.participants.forEach(id => {
+        playerIds.add(id)
+      })
+
     });
-    await postgres.query("UPDATE matches SET seen = TRUE WHERE match_id = ANY($1)",[matchIdsSeen]);
+    await postgres.query("UPDATE matches SET seen = TRUE WHERE match_id = ANY($1)", [matchIdsSeen]);
+    console.log('*** UPDATED MATCHES TO SEEN ***')
+    await storePlayerIds(playerIds)
     return parsed;
   };
 
@@ -319,41 +367,14 @@ const getEachMatchesData = async () => {
   };
 
   //! ********************************** WORK STARTS HERE **********************************
-  await connectToPostgreSQL();
 
-  let initialMatches = await postgres.query(
-      "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
-  );
 
-  while (initialMatches.rows.length === 0) {
-    if (puuidObj[initialPlayer] === true) {
-      for (key in puuidObj) {
-        if (puuidObj[key] === true) continue;
-        initialPlayer = key
-        break;
-        }
-      }
-      console.log("NO MATCHES FROM PG CALLING INIT PLAYER");
-      await getMatchIdHistoryAndStore(initialPlayer, 20);
-      initialMatches = await postgres.query(
-        "SELECT match_id FROM matches WHERE seen = FALSE LIMIT 20;"
-      );
-      puuuidObj[initialPlayer] = true
-    }
 
+  let initialMatches = await loadMatchesOrGetMore()
   let matchData = callMultipleMatchesData(initialMatches);
   let parsedData = await parseMatchData(matchData);
   await batchInsertMatchesClickhouse(parsedData);
-
   console.log("**match ingestion end**");
-
-  console.log(`*** GETTING HISTORY ${playerIds.size} PLAYERS ***`);
-
-  playerIds.forEach(async (id) => {
-    await getMatchIdHistoryAndStore(id, 10);
-    playerIds.delete(id);
-  });
-
 };
 
 // getEachMatchesData(10);
