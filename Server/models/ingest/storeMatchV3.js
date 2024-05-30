@@ -50,9 +50,10 @@ const getEachMatchesData = async () => {
   const storePlayerIds = async (playersArray) => {
     try {
       await postgres.query('BEGIN');
-      playersArray.forEach(async(player) => {
+      playersArray.forEach(async (player) => {
+        console.log(`TRY INSERT ${player}`)
       await postgres.query(
-        "INSERT INTO players (player_id) VALUES ($1)",
+        "INSERT INTO players (player_id) VALUES ($1) ON CONFLICT (player_id) DO NOTHING",
         [player]
       );
       })
