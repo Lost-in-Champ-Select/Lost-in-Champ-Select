@@ -26,8 +26,8 @@ export async function getMatchById(id) {
       throw new Error(error);
     } else {
       // return `skipMatch`;
-     return { status: response.status, match: id };
-
+    //  return { status: response.status, match: id };
+      throw new Error(`Did not recieve valid response, response recieved: ${response.status}`);
     }
 
 }
@@ -51,8 +51,8 @@ export async function getLastNumMatches(playerId, numMatches){
     // return `skipPlayer`
       throw new Error(error);
     } else {
-    // throw new Error(`Did not recieve valid response, response recieved: ${response.status}`)
-    return {status: response.status, player:playerId}
+    throw new Error(`Did not recieve valid response, response recieved: ${response.status}`)
+    // return {status: response.status, player:playerId}
     }
   }
 
