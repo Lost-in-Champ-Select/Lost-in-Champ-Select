@@ -55,10 +55,9 @@ const getEachMatchesData = async () => {
         "INSERT INTO players (player_id) VALUES ($1)",
         [player]
       );
-        console.log(`batch ${player}`)
       })
       await postgres.query('COMMIT');
-      console.log("insert players success")
+      console.log(`insert ${playersArray.size} players into PG success`)
     } catch (error) {
       await postgres.query('ROLLBACK');
       console.error("Error inserting players:", error);
