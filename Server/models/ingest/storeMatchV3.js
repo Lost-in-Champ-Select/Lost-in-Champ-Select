@@ -74,7 +74,9 @@ const getEachMatchesData = async () => {
       let players = await postgres.query(
         "SELECT player_id FROM players WHERE seen = FALSE LIMIT 20"
       );
+      console.log('PLAYERS:', players)
       players.forEach(async (id) => {
+        console.log('getting history for ', id)
         try {
           await getMatchIdHistoryAndStore(id, 20);
           await postgres.query("UPDATE players SET seen = TRUE WHERE player_id = ($1)", [id])
@@ -374,8 +376,11 @@ const getEachMatchesData = async () => {
 
 
   let initialMatches = await loadMatchesOrGetMore()
+  console.log('INITIAL MATCHES COMPLETE')
   let matchData = callMultipleMatchesData(initialMatches);
+  console.log('CALLDATA COMPLETE')
   let parsedData = await parseMatchData(matchData);
+  console.log('PARSEDDATA COMPLETE')
   await batchInsertMatchesClickhouse(parsedData);
   console.log("**match ingestion end**");
 };
