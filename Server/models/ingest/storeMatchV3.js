@@ -75,8 +75,9 @@ const getEachMatchesData = async () => {
         "SELECT player_id FROM players WHERE seen = FALSE LIMIT 20"
       );
       console.log('PLAYERS:', players)
-      players.forEach(async (id) => {
-        console.log('getting history for ', id)
+      players.rows.forEach(async (playerObject) => {
+        console.log('getting history for ', playerObject)
+        let id = playerObject.player_id
         try {
           await getMatchIdHistoryAndStore(id, 20);
           await postgres.query("UPDATE players SET seen = TRUE WHERE player_id = ($1)", [id])
