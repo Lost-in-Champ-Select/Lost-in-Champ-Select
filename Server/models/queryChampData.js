@@ -107,3 +107,6 @@ ORDER BY
 //   champion_win_rates
 // ORDER BY
 //   champion;
+
+
+export default aramWinRates

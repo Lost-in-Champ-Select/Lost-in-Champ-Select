@@ -6,11 +6,12 @@ import {
   getAccountBySummonerName,
   getAccountByRiotId,
 } from "../apiCalls.js";
-import aramWinRates from "../models/queryChampData.js"
+import aramWinRates from "../models/queryChampData.js";
+
+
+
 const router = express.Router()
 dotenv.config()
-
-
 
 
 router.get("/accountByRiotId", getAccountByRiotId);
