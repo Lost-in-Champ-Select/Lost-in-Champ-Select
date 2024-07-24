@@ -1,4 +1,4 @@
-import client from "./clickhouse.js";
+import client from "./ingest/clickhouse.js";
 
 // TODO : define queries to get win rate data etc.
 
