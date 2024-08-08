@@ -14,14 +14,14 @@ const router = express.Router()
 dotenv.config()
 
 
-router.get("/accountByRiotId", getAccountByRiotId);
+router.get("/account-by-riot-id", getAccountByRiotId);
 
-router.get("/accountBySummonerName", getAccountBySummonerName);
+router.get("/account-by-summonerName", getAccountBySummonerName);
 
-router.get('/singleMatch/:id', getMatchById)
+router.get('/single-match/:id', getMatchById)
 
-router.get("/liveMatch", getLiveMatch);
+router.get("/live-match", getLiveMatch);
 
-router.get("/aramWinRates", aramWinRates);
+router.get("/aram-win-rates", aramWinRates);
 
 export default router

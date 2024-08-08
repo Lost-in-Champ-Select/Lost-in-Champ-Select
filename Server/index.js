@@ -8,7 +8,7 @@ dotenv.config()
 
 app.use(express.json());
 app.use(express.static("build"));
-app.use('/api', routes)
+app.use('/', routes)
 
 app.listen(port, () => {
   console.log(`live on port ${port}`)

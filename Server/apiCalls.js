@@ -63,7 +63,7 @@ export async function getLiveMatch (req, res) {
   let data;
   try {
     let { data } = await fetch(
-      `https://${region}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${sumId}?api_key=${riotKey}`
+      `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${sumId}?api_key=${riotKey}`
     );
     res.send(data);
   } catch (err) {
