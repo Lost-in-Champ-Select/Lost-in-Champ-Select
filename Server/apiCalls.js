@@ -59,9 +59,10 @@ export async function getLastNumMatches(playerId, numMatches){
 
 export async function getLiveMatch(req, res) {
   console.log('GOT REQ')
-  console.log(req)
-  let playerId = req.params.playerId;
-  let region = req.params.region;
+  console.log(req.query)
+
+  let playerId = req.query.playerId;
+  let region = req.query.region;
   let data;
   try {
     let { data } = await fetch(
