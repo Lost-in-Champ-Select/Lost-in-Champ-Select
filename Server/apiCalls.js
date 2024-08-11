@@ -70,7 +70,7 @@ export async function getLiveMatch(req, res) {
     );
     res.send(data);
   } catch (err) {
-    console.log("error no live match");
+    console.log("error no live match:", err);
     data = "Summoner is not currently in a game";
   } finally {
     res.send(data);
