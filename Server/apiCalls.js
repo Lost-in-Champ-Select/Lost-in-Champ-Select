@@ -68,7 +68,8 @@ export async function getLiveMatch(req, res) {
     let { data } = await fetch(
       `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${playerId}?api_key=${riotKey}`
     );
-    console.log(data)
+    let resolved = await data.json()
+    console.log(resolved)
     res.send(data);
   } catch (err) {
     console.log("error no live match:", err);
