@@ -80,19 +80,20 @@ export async function getAccountBySummonerName (req, res) {
   let summoner = req.query.name;
   let tag = req.query.tag;
   let region = req.query.region;
-  let data;
+
   try {
-    data = await fetch(
+    let data = await fetch(
       `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
     );
     let resolved = await data.json()
     console.log(resolved)
+    res.json(data);
   } catch (err) {
     console.log("Error getting summoner by name:", err);
-    data = "Summoner does not exist";
-  } finally {
-    res.json(data);
+    res.status(500)
+    res.json({message:"Summoner does not exist"})
   }
+
 }
 
 export async function getAccountByPuuid (req, res) {
