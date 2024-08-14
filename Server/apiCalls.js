@@ -89,7 +89,7 @@ export async function getAccountBySummonerName (req, res) {
   } catch (err) {
     console.log("Error getting summoner by name:", err);
     data = "Summoner does not exist";
-  } finally(){
+  } finally {
     res.send(data);
   }
 }
