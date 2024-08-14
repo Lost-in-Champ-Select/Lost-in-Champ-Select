@@ -1,12 +1,12 @@
 import express from 'express'
 import dotenv from 'dotenv'
+import aramWinRates from "../models/queryChampData.js";
 import {
   getMatchById,
   getLiveMatch,
   getAccountBySummonerName,
-  getAccountByRiotId,
+  getAccountByPuuid,
 } from "../apiCalls.js";
-import aramWinRates from "../models/queryChampData.js";
 
 
 
@@ -14,9 +14,9 @@ const router = express.Router()
 dotenv.config()
 
 
-router.get("/account-by-riot-id", getAccountByRiotId);
+router.get("/account-by-puuid", getAccountByPuuid);
 
-router.get("/account-by-summonerName", getAccountBySummonerName);
+router.get("/account-by-summoner-name", getAccountBySummonerName);
 
 router.get('/single-match/:id', getMatchById)
 
