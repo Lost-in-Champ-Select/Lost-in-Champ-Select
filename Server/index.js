@@ -3,11 +3,15 @@ const app = express()
 const port = 4000
 import routes from './routes/routes.js'
 import dotenv from 'dotenv'
-const cors = require("cors");
+import cors from "cors";
 
 dotenv.config()
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://lostinchampselect.com/",
+  })
+);
 app.use(express.json());
 app.use(express.static("build"));
 app.use('/', routes)
