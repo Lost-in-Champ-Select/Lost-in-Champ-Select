@@ -9,7 +9,7 @@ dotenv.config()
 
 app.use(
   cors({
-    origin: "https://lostinchampselect.com/",
+    origin: "https://lostinchampselect.com",
   })
 );
 app.use(express.json());
