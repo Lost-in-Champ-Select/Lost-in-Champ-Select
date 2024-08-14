@@ -80,8 +80,9 @@ export async function getAccountBySummonerName (req, res) {
   let summoner = req.query.name;
   let tag = req.query.tag;
   let region = req.query.region;
+  let data;
   try {
-    const data = await fetch(
+    data = await fetch(
       `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
     );
     let resolved = await data.json()
