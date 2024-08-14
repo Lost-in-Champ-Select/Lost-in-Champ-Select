@@ -58,20 +58,16 @@ export async function getLastNumMatches(playerId, numMatches){
 
 
 export async function getLiveMatch(req, res) {
-  console.log('GOT REQ')
-  console.log(req.query)
-
-  let playerId = req.query.playerId;
+  let puuid = req.query.puuid;
   let region = req.query.region;
 
   try {
     let data = await fetch(
-      `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${playerId}?api_key=${riotKey}`
+      `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`
     );
 
     let resolved = await data.json()
     console.log(resolved)
-    res.send(data);
   } catch (err) {
     console.log("error no live match:", err);
     data = "Summoner is not currently in a game";
@@ -81,19 +77,29 @@ export async function getLiveMatch(req, res) {
 }
 
 export async function getAccountBySummonerName (req, res) {
-  let summoner = req.params.name;
-  let region = req.params.region;
-  let { data } = await fetch(
-    `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${summoner}?api_key=${riotKey}`
-  );
-  res.send(data);
+  let summoner = req.query.name;
+  let tag = req.query.tag;
+  let region = req.query.region;
+  try {
+    const data = await fetch(
+      `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
+    );
+    let resolved = await data.json()
+    console.log(resolved)
+  } catch (err) {
+    console.log("Error getting summoner by name:", err);
+    data = "Summoner does not exist";
+  } finally(){
+    res.send(data);
+  }
 }
 
-export async function getAccountByRiotId (req, res) {
-  let summoner = req.params.name;
-  let tag = req.params.tag;
-  const { data } = await fetch(
-    `https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
+export async function getAccountByPuuid (req, res) {
+  let puuid = req.query.puuid;
+  let tag = req.query.tag;
+  let region = req.query.region;
+  const data = await fetch(
+    `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}?api_key=${riotKey}`
   );
   res.send(data);
   }
