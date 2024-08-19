@@ -9,7 +9,7 @@ dotenv.config()
 
 app.use(
   cors({
-    origin: ["https://lostinchampselect.com","http://localhost:9000"],
+    origin: ["https://lostinchampselect.com", "http://localhost:9000"],
   })
 );
 app.use(express.json());
