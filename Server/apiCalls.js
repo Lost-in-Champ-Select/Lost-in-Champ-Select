@@ -86,7 +86,7 @@ export async function getAccountBySummonerName (req, res) {
       `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
     );
     let resolved = await data.json()
-    console.log(resolved)
+    console.log(resolved);
     res.json(resolved);
   } catch (err) {
     console.log("Error getting summoner by name:", err);
@@ -96,7 +96,7 @@ export async function getAccountBySummonerName (req, res) {
 
 }
 
-export async function getAccountByPuuid (req, res) {
+export async function 21xz (req, res) {
   let puuid = req.query.puuid;
   let tag = req.query.tag;
   let region = req.query.region;
