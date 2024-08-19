@@ -96,7 +96,7 @@ export async function getAccountBySummonerName (req, res) {
 
 }
 
-export async function 21xz (req, res) {
+export async function getAccountByPuuid (req, res) {
   let puuid = req.query.puuid;
   let tag = req.query.tag;
   let region = req.query.region;
