@@ -60,11 +60,11 @@ export async function getLastNumMatches(playerId, numMatches){
 export async function getLiveMatch(req, res) {
   let puuid = req.query.puuid;
   let region = req.query.region;
-  console.log(req.query)
-
+  console.log(req.query);
+  //TODO this region is NA1 / BR1 / EUN1 / EUW1 / JP1 / KR / LA1/ LA2 / OC1 / PH2 / RU / SG2 / TH2 / TR1 / TW2 / VN2
   try {
     let data = await fetch(
-      `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}?api_key=${riotKey}`
+      `https://na1.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}?api_key=${riotKey}`
     );
 
     let resolved = await data.json();
@@ -81,7 +81,7 @@ export async function getAccountBySummonerName (req, res) {
   let summoner = req.query.name;
   let tag = req.query.tag;
   let region = req.query.region;
-
+//TODO this region is AMERICAS / ASIA / ESPORTS / EUROPE
   try {
     let data = await fetch(
       `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
