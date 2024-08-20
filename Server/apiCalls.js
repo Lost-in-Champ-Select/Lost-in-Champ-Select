@@ -60,19 +60,20 @@ export async function getLastNumMatches(playerId, numMatches){
 export async function getLiveMatch(req, res) {
   let puuid = req.query.puuid;
   let region = req.query.region;
+  console.log(req.query)
 
   try {
     let data = await fetch(
       `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`
     );
 
-    let resolved = await data.json()
-    console.log(resolved)
+    let resolved = await data.json();
+    console.log(resolved);
+    res.json(resolved);
   } catch (err) {
-    console.log("error no live match:", err);
-    data = "Summoner is not currently in a game";
-  } finally {
-    res.send(data);
+    console.log("Error getting live match:", err);
+    res.status(500);
+    res.json({ message: err });
   }
 }
 
