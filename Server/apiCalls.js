@@ -64,7 +64,7 @@ export async function getLiveMatch(req, res) {
 
   try {
     let data = await fetch(
-      `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}`
+      `https://${region}.api.riotgames.com/lol/spectator/v5/active-games/by-summoner/${puuid}?api_key=${riotKey}`
     );
 
     let resolved = await data.json();
