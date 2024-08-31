@@ -1,5 +1,6 @@
 import process from "process";
 import dotenv from "dotenv";
+import aramWinRates from "../models/queryChampData.js";
 dotenv.config();
 const riotKey = process.env.RIOT_KEY;
 // import fetch from 'node-fetch'
@@ -107,3 +108,15 @@ export async function getAccountByPuuid (req, res) {
   res.send(data);
   }
 
+export async function getAramWinRatesFromDB(req, res) {
+  let champs = req.query.champs
+  try {
+    let winRates = await aramWinRates(champs)
+    res.json(winRates)
+  } catch (err) {
+     console.log("Error getting winrates:", err);
+     res.status(500);
+     res.json({ message: err });
+  }
+
+}

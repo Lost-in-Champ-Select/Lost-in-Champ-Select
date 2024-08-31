@@ -1,4 +1,4 @@
-const champions = {
+export const champions = {
   "266": "Aatrox",
   "103": "Ahri",
   "84": "Akali",
@@ -169,6 +169,5 @@ const champions = {
   "221": "Zeri"
 };
 
-export defualt champions
 
 //console.log(Object.keys(champions).length)

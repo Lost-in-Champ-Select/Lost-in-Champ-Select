@@ -1,11 +1,12 @@
 import express from 'express'
 import dotenv from 'dotenv'
-import aramWinRates from "../models/queryChampData.js";
+
 import {
   getMatchById,
   getLiveMatch,
   getAccountBySummonerName,
   getAccountByPuuid,
+  getAramWinRatesFromDB,
 } from "../apiCalls.js";
 
 
@@ -22,6 +23,8 @@ router.get('/single-match/:id', getMatchById)
 
 router.get("/live-match", getLiveMatch);
 
-router.get("/aram-win-rates", aramWinRates);
+router.get("/aram-win-rates", getAramWinRatesFromDB);
+
+
 
 export default router

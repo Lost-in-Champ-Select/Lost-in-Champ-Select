@@ -1,10 +1,24 @@
 import client from "./ingest/clickhouse.js";
-
+import { champions }  from "../champions.js"
 // TODO : define queries to get win rate data etc.
+
+let convertIdToChamp = (champArray) => {
+  let names = []
+  champArray.map((champId) => {
+    let name
+    for (id in champions) {
+      if (id === champId)
+        name = champions[id]
+    }
+    names.push(name)
+  })
+  return names
+}
 
 
 //! give it 10 champs and get back aram win rates for those champs
-const aramWinRates = (champArray) => {
+const aramWinRates = async (champArray) => {
+  champArray = convertIdToChamp(champArray);
   // Function to safely escape identifiers (such as column names)
   function escapeIdentifier(identifier) {
     return "`" + identifier.replace(/`/g, "``") + "`";
