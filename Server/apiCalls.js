@@ -110,8 +110,10 @@ export async function getAccountByPuuid (req, res) {
 
 export async function getAramWinRatesFromDB(req, res) {
   let champs = req.query.champs
+  console.log('GET ARAM WIN RATES FROM DB NOW:')
   try {
     let winRates = await aramWinRates(champs)
+    console.log(winRates);
     res.json(winRates)
   } catch (err) {
      console.log("Error getting winrates:", err);
