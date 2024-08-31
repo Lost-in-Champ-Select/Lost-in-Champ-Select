@@ -10,6 +10,7 @@ const aramWinRates = async (champArray) => {
 
 
   let convertIdToChamp = (champArray) => {
+    if(typeOf(chammpArray) === "string" ) champArray = JSON.parse(champArray);
     if (!Array.isArray(champArray)) return;
 
     return champArray.map((champId) => champions[champId] || null);
