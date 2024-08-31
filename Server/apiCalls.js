@@ -1,6 +1,6 @@
 import process from "process";
 import dotenv from "dotenv";
-import aramWinRates from "../models/queryChampData.js";
+import aramWinRates from "./models/queryChampData.js";
 dotenv.config();
 const riotKey = process.env.RIOT_KEY;
 // import fetch from 'node-fetch'
