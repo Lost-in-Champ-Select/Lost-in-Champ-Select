@@ -3,17 +3,17 @@ import { champions }  from "../champions.js"
 // TODO : define queries to get win rate data etc.
 
 
-let convertIdToChamp = (champArray) => {
-  if (!Array.isArray(champArray)) return;
-
-  return champArray.map((champId) => champions[champId] || null);
-};
 
 
 //! give it 10 champs and get back aram win rates for those champs
 const aramWinRates = async (champArray) => {
 
 
+  let convertIdToChamp = (champArray) => {
+    if (!Array.isArray(champArray)) return;
+
+    return champArray.map((champId) => champions[champId] || null);
+  };
   champArray = convertIdToChamp(champArray);
   // Function to safely escape identifiers (such as column names)
   function escapeIdentifier(identifier) {
