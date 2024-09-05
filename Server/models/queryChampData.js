@@ -64,6 +64,7 @@ const aramWinRates = async (champArray) => {
     champion;
   `;
 
+  console.log(query)
   try {
     const result = await client.query(query);
     console.log(result);
