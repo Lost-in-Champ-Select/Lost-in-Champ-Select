@@ -70,11 +70,11 @@ export async function getLiveMatch(req, res) {
     );
 
     let resolved = await data.json();
-    //console.log(resolved);
+    console.log(resolved);
 
     // TODO ALSO GET % chance to win ( RETURN win rates for now) and send custom obj back instead of useless data
     gameData.data = resolved
-    let champArray = resolved.participants.map((player) => {
+    let champArray = resolved.participants?.map((player) => {
       return player.championId
     })
     let winRates = await aramWinRates(champArray)
