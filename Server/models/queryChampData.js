@@ -3,77 +3,141 @@ import { champions }  from "../champions.js"
 // TODO : define queries to get win rate data etc.
 
 
-
-
-//! give it 10 champs and get back aram win rates for those champs
 const aramWinRates = async (champArray) => {
-
-
   let convertIdToChamp = (champArray) => {
-    if(typeof(chammpArray) === "string" ) champArray = JSON.parse(champArray);
+    if (typeof champArray === "string") champArray = JSON.parse(champArray);
     if (!Array.isArray(champArray)) return;
 
     return champArray.map((champId) => champions[champId] || null);
   };
 
   champArray = convertIdToChamp(champArray);
-  console.log(champArray)
-  // Function to safely escape identifiers (such as column names)
-  function escapeIdentifier(identifier) {
-    return "`" + identifier.replace(/`/g, "``") + "`";
-  }
 
-  // Function to safely escape strings (such as values)
-  function escapeString(str) {
-    return "'" + str.replace(/'/g, "''") + "'";
+  if (!champArray || champArray.length === 0) {
+    throw new Error("Invalid or empty champion array");
   }
 
   let query = `
-  WITH
-  flattened_data AS (
-    SELECT
-      champion,
-      win
-    FROM (
+    WITH
+    flattened_data AS (
       SELECT
-        arrayJoin(${escapeIdentifier("team1_champions")}) AS champion,
-        ${escapeIdentifier("team1_win")} AS win
-      FROM
-        ${escapeIdentifier("aram_matches")}
-      UNION ALL
+        champion,
+        win
+      FROM (
+        SELECT
+          arrayJoin(team1_champions) AS champion,
+          team1_win AS win
+        FROM
+          aram_matches
+        UNION ALL
+        SELECT
+          arrayJoin(team2_champions) AS champion,
+          NOT team1_win AS win
+        FROM
+          aram_matches
+      )
+    ),
+    champion_win_rates AS (
       SELECT
-        arrayJoin(${escapeIdentifier("team2_champions")}) AS champion,
-        NOT ${escapeIdentifier("team1_win")} AS win
+        champion,
+        avg(win) AS win_rate
       FROM
-        ${escapeIdentifier("aram_matches")}
+        flattened_data
+      WHERE
+        champion IN array(${champArray
+          .map((champ) => `'${champ}'`)
+          .join(", ")})  -- Use array
+      GROUP BY
+        champion
     )
-  ),
-  champion_win_rates AS (
-    SELECT
-      champion,
-      avg(win) AS win_rate
-    FROM
-      flattened_data
-    WHERE
-      champion IN (${champArray.map((champ) => escapeString(champ)).join(", ")})
-    GROUP BY
-      champion
-  )
-SELECT
-  champion,
-  win_rate
-FROM
-  champion_win_rates
-ORDER BY
-  champion;
+  SELECT
+    champion,
+    win_rate
+  FROM
+    champion_win_rates
+  ORDER BY
+    champion;
   `;
 
-
-
-  let data = await client.query(query)
-  console.log('CHAMP WINRATE DATA::::', data)
-  return data
+  try {
+    const result = await client.query(query);
+    console.log(result);
+    return result;
+  } catch (error) {
+    console.log("Error querying ClickHouse:", error);
+  }
 };
+
+
+//! give it 10 champs and get back aram win rates for those champs
+// const aramWinRates = async (champArray) => {
+
+
+//   let convertIdToChamp = (champArray) => {
+//     if(typeof(chammpArray) === "string" ) champArray = JSON.parse(champArray);
+//     if (!Array.isArray(champArray)) return;
+
+//     return champArray.map((champId) => champions[champId] || null);
+//   };
+
+//   champArray = convertIdToChamp(champArray);
+
+//   // Function to safely escape identifiers (such as column names)
+//   function escapeIdentifier(identifier) {
+//     return "`" + identifier.replace(/`/g, "``") + "`";
+//   }
+
+//   // Function to safely escape strings (such as values)
+//   function escapeString(str) {
+//     return "'" + str.replace(/'/g, "''") + "'";
+//   }
+
+//   let query = `
+//   WITH
+//   flattened_data AS (
+//     SELECT
+//       champion,
+//       win
+//     FROM (
+//       SELECT
+//         arrayJoin(${escapeIdentifier("team1_champions")}) AS champion,
+//         ${escapeIdentifier("team1_win")} AS win
+//       FROM
+//         ${escapeIdentifier("aram_matches")}
+//       UNION ALL
+//       SELECT
+//         arrayJoin(${escapeIdentifier("team2_champions")}) AS champion,
+//         NOT ${escapeIdentifier("team1_win")} AS win
+//       FROM
+//         ${escapeIdentifier("aram_matches")}
+//     )
+//   ),
+//   champion_win_rates AS (
+//     SELECT
+//       champion,
+//       avg(win) AS win_rate
+//     FROM
+//       flattened_data
+//     WHERE
+//       champion IN (${champArray.map((champ) => escapeString(champ)).join(", ")})
+//     GROUP BY
+//       champion
+//   )
+// SELECT
+//   champion,
+//   win_rate
+// FROM
+//   champion_win_rates
+// ORDER BY
+//   champion;
+//   `;
+
+
+
+//   let data = await client.query(query)
+//   console.log('CHAMP WINRATE DATA::::', data)
+//   return data
+// };
 
 //! CLICKHOUSE PROJECTIONS
 
