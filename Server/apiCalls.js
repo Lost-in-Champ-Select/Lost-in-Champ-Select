@@ -61,7 +61,8 @@ export async function getLastNumMatches(playerId, numMatches){
 export async function getLiveMatch(req, res) {
   let puuid = req.query.puuid;
   let region = req.query.region;
-  console.log(req.query);
+  let gameData = {};
+  console.log('getlivematch', req.query);
   //TODO this region is NA1 / BR1 / EUN1 / EUW1 / JP1 / KR / LA1/ LA2 / OC1 / PH2 / RU / SG2 / TH2 / TR1 / TW2 / VN2
   try {
     let data = await fetch(
@@ -69,8 +70,17 @@ export async function getLiveMatch(req, res) {
     );
 
     let resolved = await data.json();
-    console.log(resolved);
-    res.json(resolved);
+    //console.log(resolved);
+
+    // TODO ALSO GET % chance to win ( RETURN win rates for now) and send custom obj back instead of useless data
+    gameData.data = resolved
+    let champArray = resolved.participants.map((player) => {
+      return player.championId
+    })
+    let winRates = await aramWinRates(champArray)
+    gameData.winRates = winRates;
+    console.log('Sending back gamedata:', gameData)
+    res.json(gameData);
   } catch (err) {
     console.log("Error getting live match:", err);
     res.status(500);
