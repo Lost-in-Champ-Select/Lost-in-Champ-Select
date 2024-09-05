@@ -17,6 +17,7 @@ const aramWinRates = async (champArray) => {
     throw new Error("Invalid or empty champion array");
   }
 
+  // Simplified query with a parameter for the champion array
   let query = `
     WITH
     flattened_data AS (
@@ -44,9 +45,7 @@ const aramWinRates = async (champArray) => {
       FROM
         flattened_data
       WHERE
-        champion IN array(${champArray
-          .map((champ) => `'${champ}'`)
-          .join(", ")})  -- Use array
+        champion IN ?  
       GROUP BY
         champion
     )
@@ -60,13 +59,19 @@ const aramWinRates = async (champArray) => {
   `;
 
   try {
-    const result = await client.query(query);
+    // Pass champArray as a parameter to the query
+    const result = await client.query({
+      query,
+      params: [champArray], // Pass champArray directly as a parameter
+    });
+
     console.log(result);
     return result;
   } catch (error) {
     console.log("Error querying ClickHouse:", error);
   }
 };
+
 
 
 //! give it 10 champs and get back aram win rates for those champs
