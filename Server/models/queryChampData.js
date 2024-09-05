@@ -15,7 +15,9 @@ const aramWinRates = async (champArray) => {
 
     return champArray.map((champId) => champions[champId] || null);
   };
+
   champArray = convertIdToChamp(champArray);
+  console.log(champArray)
   // Function to safely escape identifiers (such as column names)
   function escapeIdentifier(identifier) {
     return "`" + identifier.replace(/`/g, "``") + "`";
@@ -67,14 +69,10 @@ ORDER BY
   `;
 
 
-  client.query(query).toPromise()
-    .then(result => {
-      console.log(result)
-      return result
-    })
-    .catch(error => {
-    console.log(error)
-  })
+
+  let data = await client.query(query)
+  console.log('CHAMP WINRATE DATA::::', data)
+  return data
 };
 
 //! CLICKHOUSE PROJECTIONS
