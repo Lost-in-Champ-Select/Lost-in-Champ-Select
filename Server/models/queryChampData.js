@@ -67,7 +67,7 @@ ORDER BY
   `;
 
 
-  clickhouse.query(query).toPromise()
+  client.query(query).toPromise()
     .then(result => {
       console.log(result)
       return result
