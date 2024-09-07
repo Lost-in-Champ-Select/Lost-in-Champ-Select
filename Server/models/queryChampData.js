@@ -71,7 +71,7 @@ const aramWinRates = async (champArray) => {
       query,
       format: "JSON",
     });
-
+    console.log(result)
     return new Promise((resolve, reject) => {
       result.stream.on('data', (chunk) => {
         data += chunk.toString();
