@@ -88,10 +88,19 @@ const aramWinRates = async (champArray) => {
     });
 
     console.log("Parsed QUERY RESULTS: ", data);
-    return data; // Adjust based on actual structure
+    // Create a map of champion names to win rates
+    const winRateMap = new Map(
+      data.data.map((entry) => [entry.champion, entry.win_rate])
+    );
 
-    console.log("QUERY RESULTS: ", result);
-    return result;
+    // Reorder the data based on the original champArray
+    const reorderedData = champArray.map((champ) => ({
+      champion: champ,
+      win_rate: winRateMap.get(champ) || null,
+    }));
+
+    console.log("Reordered win rates: ", reorderedData);
+    return reorderedData;
   } catch (error) {
     console.error("Error querying ClickHouse:", error);
   }
