@@ -65,16 +65,31 @@ const aramWinRates = async (champArray) => {
   `;
 
   try {
+    let data = ''
     const result = await client.query({
       query, // Passing query string here
       format: "JSON", // Ensure response is JSON formatted
-    }).toJSON()
+    });
+    result.stream.on('data', (chunk) => {
+      data += chunk.toString();
+    })
+
+
+    result.stream.on('end', () => {
+      try {
+        const jsonData = JSON.parse(data)
+      }
+    })
 
     console.log('QUERY RESULTS: ',result);
-    return result;
+    return jsonData;
   } catch (error) {
     console.error("Error querying ClickHouse:", error);
   }
+
+  result.stream.on('error', (err) => {
+    console.error('stream error:', err)
+  })
 };
 
 
