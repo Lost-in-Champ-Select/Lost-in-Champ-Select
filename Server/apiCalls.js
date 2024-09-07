@@ -1,6 +1,7 @@
 import process from "process";
 import dotenv from "dotenv";
 import aramWinRates from "./models/queryChampData.js";
+import teamWinRates from "./teamWinRates.js"
 dotenv.config();
 const riotKey = process.env.RIOT_KEY;
 // import fetch from 'node-fetch'
@@ -79,6 +80,8 @@ export async function getLiveMatch(req, res) {
     })
     let winRates = await aramWinRates(champArray)
     gameData.winRates = winRates;
+    let teamChance = await teamWinRates(winRates)
+    gameData.teamChance = teamChance
     console.log('Sending back gamedata:', gameData)
     res.json(gameData);
   } catch (err) {
