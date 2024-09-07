@@ -68,9 +68,29 @@ const aramWinRates = async (champArray) => {
     const result = await client.query({
       query, // Passing query string here
       format: "JSON", // Ensure response is JSON formatted
-    })
+    });
+    const data = await new Promise((resolve, reject) => {
+      const passThrough = new PassThrough();
+      const chunks = [];
 
-    console.log('QUERY RESULTS: ',result);
+      passThrough.on("data", (chunk) => chunks.push(chunk));
+      passThrough.on("end", () => {
+        try {
+          const result = JSON.parse(Buffer.concat(chunks).toString());
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      passThrough.on("error", reject);
+
+      result._stream.pipe(passThrough); // Use the stream from the ResultSet
+    });
+
+    console.log("Parsed QUERY RESULTS: ", data);
+    return data; // Adjust based on actual structure
+
+    console.log("QUERY RESULTS: ", result);
     return result;
   } catch (error) {
     console.error("Error querying ClickHouse:", error);
