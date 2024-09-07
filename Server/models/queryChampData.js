@@ -68,7 +68,7 @@ const aramWinRates = async (champArray) => {
     const result = await client.query({
       query, // Passing query string here
       format: "JSON", // Ensure response is JSON formatted
-    }).toPromise()
+    })
 
     console.log('QUERY RESULTS: ',result);
     return result;
