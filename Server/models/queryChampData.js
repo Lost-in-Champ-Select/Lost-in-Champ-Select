@@ -64,7 +64,7 @@ const aramWinRates = async (champArray) => {
     champion;
   `;
 
-  ry {
+  try {
     let data = '';
 
     const result = client.query({
