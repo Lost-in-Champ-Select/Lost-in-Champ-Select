@@ -96,7 +96,7 @@ const aramWinRates = async (champArray) => {
     // Reorder the data based on the original champArray
     const reorderedData = champArray.map((champ) => ({
       champion: champ,
-      win_rate: winRateMap.get(champ) || null,
+      win_rate: parseFloat((winRateMap.get(champ) || 0).toFixed(2)), // Round to 2 decimal
     }));
 
     console.log("Reordered win rates: ", reorderedData);
