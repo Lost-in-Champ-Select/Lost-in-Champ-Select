@@ -75,6 +75,7 @@ export async function getLiveMatch(req, res) {
 
     // TODO ALSO GET % chance to win ( RETURN win rates for now) and send custom obj back instead of useless data
     gameData.data = resolved
+    console.log('resolved data in get live match:',resolved)
     let champArray = resolved.participants?.map((player) => {
       return player.championId
     })
