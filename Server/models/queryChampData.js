@@ -4,6 +4,7 @@ import { champions }  from "../champions.js"
 import { PassThrough } from "stream";
 
 const aramWinRates = async (champArray) => {
+  console.log('CHAMPARRAY:', champArray)
   let convertIdToChamp = (champArray) => {
     if (typeof champArray === "string") champArray = JSON.parse(champArray);
     if (!Array.isArray(champArray)) return;
