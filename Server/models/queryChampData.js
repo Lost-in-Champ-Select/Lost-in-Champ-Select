@@ -89,7 +89,7 @@ const aramWinRates = async (champArray) => {
     });
 
     console.log("Parsed QUERY RESULTS: ", data);
-    // Create a map of champion names to win rates
+    // Create a map of champion names to win rates to keep the team order
     const winRateMap = new Map(
       data.data.map((entry) => [entry.champion, entry.win_rate])
     );
@@ -97,7 +97,7 @@ const aramWinRates = async (champArray) => {
     // Reorder the data based on the original champArray
     const reorderedData = champArray.map((champ) => ({
       champion: champ,
-      win_rate: parseFloat((winRateMap.get(champ) || 0).toFixed(2)), // Round to 2 decimal
+      win_rate: Math.floor((winRateMap.get(champ) || 0) * 100),
     }));
 
     console.log("Reordered win rates: ", reorderedData);
