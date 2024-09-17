@@ -13,7 +13,6 @@ app.use(
   })
 );
 app.use(express.json());
-app.use(express.static("docs"));
 app.use(express.static("build"));
 
 app.use('/', routes)
