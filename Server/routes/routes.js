@@ -1,7 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import path from "path"
-
+import { fileURLToPath } from "url";
 import {
   getMatchById,
   getLiveMatch,
@@ -15,6 +15,8 @@ import {
 const router = express.Router()
 dotenv.config()
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 router.get("/account-by-puuid", getAccountByPuuid);
 
