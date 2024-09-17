@@ -27,6 +27,7 @@ router.get("/live-match", getLiveMatch);
 router.get("/aram-win-rates", getAramWinRatesFromDB);
 
 router.get("/riot.txt", (req, res) => {
+  res.setHeader("Content-Type", "text/plain");
   const filePath = path.join(__dirname, "../../docs/riot.txt");
   res.sendFile(filePath);
 });
