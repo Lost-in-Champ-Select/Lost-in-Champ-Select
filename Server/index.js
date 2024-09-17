@@ -16,11 +16,6 @@ app.use(express.json());
 app.use(express.static("docs"));
 app.use(express.static("build"));
 
-app.get('/riot.txt', (req, res) => {
-  const filePath = path.join(__dirname, '../docs', 'riot.txt');
-  res.sendFile(filePath);
-});
-
 app.use('/', routes)
 
 app.listen(port, () => {
