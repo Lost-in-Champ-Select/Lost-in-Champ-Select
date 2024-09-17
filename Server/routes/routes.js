@@ -26,9 +26,4 @@ router.get("/live-match", getLiveMatch);
 
 router.get("/aram-win-rates", getAramWinRatesFromDB);
 
-router.get("/riot.txt", (req, res) => {
-  const filePath = path.join(__dirname, '../riot.txt')
-  res.sendFile(filePath)
-} )
-
 export default router
