@@ -4,7 +4,7 @@ const port = 4000
 import routes from './routes/routes.js'
 import dotenv from 'dotenv'
 import cors from "cors";
-
+import path from "path";
 dotenv.config()
 
 app.use(
@@ -13,7 +13,7 @@ app.use(
   })
 );
 app.use(express.json());
-// app.use(express.static("docs"));
+
 app.use(express.static("build"));
 
 app.use('/', routes)
