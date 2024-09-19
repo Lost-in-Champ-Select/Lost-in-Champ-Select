@@ -12,9 +12,14 @@ app.use(
     origin: "https://lostinchampselect.com",
   })
 );
+
 app.use(express.json());
 
 app.use(express.static("build"));
+
+app.get("/riot.txt", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "../docs/riot.txt"));
+});
 
 app.use('/', routes)
 
