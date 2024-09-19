@@ -14,6 +14,10 @@ app.use(
 );
 app.use(express.json());
 
+app.use("/docs", express.static("docs"));
+app.get("/riot.txt", (req, res) => {
+  res.sendFile(path.resolve("docs", "riot.txt"));
+});
 app.use(express.static("build"));
 
 app.use('/', routes)
