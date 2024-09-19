@@ -16,8 +16,10 @@ app.use(express.json());
 
 app.use("/docs", express.static("docs"));
 app.get("/riot.txt", (req, res) => {
+  console.log('GET RIOT TXT IN INDEX')
   res.sendFile(path.resolve("docs", "riot.txt"));
 });
+
 app.use(express.static("build"));
 
 app.use('/', routes)
