@@ -25,6 +25,7 @@ export async function getMatchById(id) {
        };
       // return `skipMatch`;
       console.log(error)
+      console.log(response)
       throw new Error(error);
     } else {
       // return `skipMatch`;
