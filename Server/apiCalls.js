@@ -35,31 +35,36 @@ export async function getMatchById(id) {
 
 }
 
-export async function getLastNumMatches(playerId, numMatches){
+export async function getLastNumMatches(playerId, numMatches, queue) {
+  //? queue info  https://static.developer.riotgames.com/docs/lol/queues.json
+  if (!queue) queue = "";
+
   const response = await fetch(
-    `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?start=0&count=${numMatches}&api_key=${riotKey}`
+    `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?${queue}start=0&count=${numMatches}&api_key=${riotKey}`
   );
   if (response.status === 200) {
-      return await response.json();
-    } else if (response.status === 429) {
-      const retry = response.headers.get("Retry-After")
-      console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`)
-      await new Promise((resolve) => setTimeout(resolve, retry * 1000));
-      return getLastNumMatches(playerId,numMatches)
-    } else if (response.status === 403 | 401) {
-       let error = {
-         status: response.status,
-         message: `Did not recieve valid response, response recieved: ${response.status}`,
-       };
+    return await response.json();
+  } else if (response.status === 429) {
+    const retry = response.headers.get("Retry-After");
+    console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`);
+    await new Promise((resolve) => setTimeout(resolve, retry * 1000));
+    return getLastNumMatches(playerId, numMatches);
+  } else if ((response.status === 403) | 401) {
+    let error = {
+      status: response.status,
+      message: `Did not recieve valid response, response recieved: ${response.status}`,
+    };
     // return `skipPlayer`
-      throw new Error(error);
-    } else {
-    throw new Error(`Did not recieve valid response, response recieved: ${response.status}`)
+    throw new Error(error);
+  } else {
+    throw new Error(
+      `Did not recieve valid response, response recieved: ${response.status}`
+    );
     // return {status: response.status, player:playerId}
-    }
   }
+}
 
-
+//! gets live match and win %s / team win chance
 export async function getLiveMatch(req, res) {
   let puuid = req.query.puuid;
   let region = req.query.region;
@@ -97,7 +102,7 @@ export async function getAccountBySummonerName (req, res) {
   let summoner = req.query.name;
   let tag = req.query.tag;
   let region = req.query.region;
-//TODO this region is AMERICAS / ASIA / ESPORTS / EUROPE
+//TODO this region is AMERICAS / ASIA / ESPORTS / EUROPE (have this auto resolve )
   try {
     let data = await fetch(
       `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
@@ -137,3 +142,4 @@ export async function getAramWinRatesFromDB(req, res) {
   }
 
 }
+

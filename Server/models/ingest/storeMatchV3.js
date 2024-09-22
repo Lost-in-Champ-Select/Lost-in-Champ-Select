@@ -22,12 +22,12 @@ async function connectToPostgreSQL() {
 
 await connectToPostgreSQL();
 
-const getEachMatchesData = async () => {
+const getEachMatchesData = async (queueType) => {
   let initialPlayer =
     "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w";
 
   const getMatchIdHistoryAndStore = async (playerId, numMatches) => {
-    let playerHistory = await getLastNumMatches(playerId, numMatches);
+    let playerHistory = await getLastNumMatches(playerId, numMatches, queueType);
     if (!Array.isArray(playerHistory)) {
       console.log("getMatchIdHistoryAndStore ERROR");
       return;
@@ -394,7 +394,7 @@ for (; ;) {
     console.log("PG CLOSED");
     break;
   }
-  await getEachMatchesData();
+  await getEachMatchesData(450);
   console.log(`
   ********* ********* ********* ********* ********* ********* ********* ********* *********
   ********* ********* ********* ********* ********* ********* ********* ********* *********
@@ -415,4 +415,4 @@ for (; ;) {
 
 // TODO ISSUES
 //? need it to stop looking up matches if requests arent coming back
-//? need it to keep going if its just a one off 
+//? need it to keep going if its just a one off
