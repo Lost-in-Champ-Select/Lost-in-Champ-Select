@@ -110,7 +110,7 @@ export async function getAccountBySummonerName (req, res) {
     let accountInfo = await data.json()
     console.log('ACCOUNT INFO',accountInfo)
     let moreInfo = await fetch(
-      `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${accountInfo.puuid}`
+      `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${accountInfo.puuid}?api_key=${riotKey}`
     );
     let resolved = await moreInfo.json();
     console.log('MORE INFO',resolved);
