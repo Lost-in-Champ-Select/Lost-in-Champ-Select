@@ -108,11 +108,12 @@ export async function getAccountBySummonerName (req, res) {
       `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
     );
     let accountInfo = await data.json()
+    console.log('ACCOUNT INFO',accountInfo)
     let moreInfo = await fetch(
       `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${accountInfo.puuid}`
     );
     let resolved = await moreInfo.json();
-    console.log(resolved);
+    console.log('MORE INFO',resolved);
     res.json(resolved);
   } catch (err) {
     console.log("Error getting summoner by name:", err);
