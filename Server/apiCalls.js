@@ -102,12 +102,16 @@ export async function getAccountBySummonerName (req, res) {
   let summoner = req.query.name;
   let tag = req.query.tag;
   let region = req.query.region;
-//TODO this region is AMERICAS / ASIA / ESPORTS / EUROPE (have this auto resolve )
+//TODO this region is AMERICAS / ASIA / ESPORTS / EUROPE (have this auto resolve get na1 style region then resolve the major region from that)
   try {
     let data = await fetch(
       `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
     );
-    let resolved = await data.json()
+    let accountInfo = await data.json()
+    let moreInfo = await fetch(
+      `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${accountInfo.puuid}`
+    );
+    let resolved = await moreInfo.json();
     console.log(resolved);
     res.json(resolved);
   } catch (err) {
