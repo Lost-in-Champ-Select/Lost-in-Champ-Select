@@ -28,7 +28,7 @@ const teamWinRates = async (winRates) => {
 
   return {
     team1Chance: Math.round(team1Chance * 100), // Convert to percentage
-    team2Chance: Math.round(team2Chance * 100)  // Convert to percentage
+    team2Chance: Math.round(team2Chance * 100),  // Convert to percentage
     team1ModifiedChance: Math.round(team1ModifiedChance * 100), // Convert to percentage
     team2ModifiedChance: Math.round(team2ModifiedChance * 100)  // Convert to percentage
   };
