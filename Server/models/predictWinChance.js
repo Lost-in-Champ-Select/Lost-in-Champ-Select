@@ -1,4 +1,3 @@
-//! championsData is hardcoded for testing for now until i create testing file
 const championsData = [
   {
     champion: "Irelia",
@@ -65,20 +64,20 @@ const championsData = [
   },
 ];
 
-// Calculate baseline values
-const averageKDA =
-  championsData.reduce((sum, champ) => sum + champ.avg_kda, 0) /
-  championsData.length;
-const averageGold =
-  championsData.reduce((sum, champ) => sum + champ.avg_gold, 0) /
-  championsData.length;
-const averageDamage =
-  championsData.reduce((sum, champ) => sum + champ.avg_damage, 0) /
-  championsData.length;
+// Define a function to calculate modified win rates
+function calculateModifiedWinRates(champions) {
+  // Calculate baseline values
+  const averageKDA =
+    champions.reduce((sum, champ) => sum + champ.avg_kda, 0) / champions.length;
+  const averageGold =
+    champions.reduce((sum, champ) => sum + champ.avg_gold, 0) /
+    champions.length;
+  const averageDamage =
+    champions.reduce((sum, champ) => sum + champ.avg_damage, 0) /
+    champions.length;
 
-//! Define a function to apply modifiers (modify win rates based on custom variables)
-function applyModifiers(champions) {
-  return champions.map((champ) => {
+  // Modify original objects
+  champions.forEach((champ) => {
     let modifiedWinRate = champ.avg_win_rate;
 
     // Modify win rate based on KDA
@@ -105,13 +104,13 @@ function applyModifiers(champions) {
     // Ensure modified win rate stays within [0, 1]
     modifiedWinRate = Math.max(0, Math.min(1, modifiedWinRate));
 
-    return {
-      champion: champ.champion,
-      modified_win_rate: modifiedWinRate,
-    };
+    // Round to two decimal places and add it to the champion object
+    champ.modified_win_rate = parseFloat(modifiedWinRate.toFixed(2));
   });
+
+  return champions; // Return the modified champion objects
 }
 
 // Apply modifiers and infer winning chances
-const modifiedWinRates = applyModifiers(championsData);
-console.log(modifiedWinRates);
+const modifiedChampionsData = calculateModifiedWinRates(championsData);
+console.log(modifiedChampionsData);
