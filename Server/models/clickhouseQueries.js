@@ -110,10 +110,10 @@ WITH
 
 SELECT
   champion,
-  AVG(win_rate) AS avg_win_rate,
-  AVG((champ1_kills + champ1_assists) / GREATEST(1, champ1_deaths)) AS avg_kda,
-  AVG(team_gold_earned) AS avg_gold,
-  AVG(team_damage_dealt) AS avg_damage
+  AVG(win_rate) AS win_rate,
+  AVG((champ1_kills + champ1_assists) / GREATEST(1, champ1_deaths)) AS kda,
+  AVG(team_gold_earned) AS gold,
+  AVG(team_damage_dealt) AS damage
 FROM
   combined_data
 GROUP BY
@@ -190,10 +190,10 @@ export const getTenChampsStats = (championArrayString) => {
 
   SELECT
     champion,
-    AVG(win_rate) AS avg_win_rate,
-    AVG((champ1_kills + champ1_assists) / GREATEST(1, champ1_deaths)) AS avg_kda,
-    AVG(team_gold_earned) AS avg_gold,
-    AVG(team_damage_dealt) AS avg_damage
+    AVG(win_rate) AS win_rate,
+    AVG((champ1_kills + champ1_assists) / GREATEST(1, champ1_deaths)) AS kda,
+    AVG(team_gold_earned) AS gold,
+    AVG(team_damage_dealt) AS damage
   FROM
     combined_data
   GROUP BY
@@ -271,10 +271,10 @@ export const queryAllChampStats = (championArrayString) => {
 
   SELECT
   champion,
-  AVG(win_rate) AS avg_win_rate,
-  AVG((champ1_kills + champ1_assists) / GREATEST(1, champ1_deaths)) AS avg_kda,
-  AVG(team_gold_earned) AS avg_gold,
-  AVG(team_damage_dealt) AS avg_damage
+  AVG(win_rate) AS win_rate,
+  AVG((champ1_kills + champ1_assists) / GREATEST(1, champ1_deaths)) AS kda,
+  AVG(team_gold_earned) AS gold,
+  AVG(team_damage_dealt) AS damage
   FROM
   combined_data
   GROUP BY
