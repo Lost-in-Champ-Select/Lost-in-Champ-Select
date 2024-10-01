@@ -54,7 +54,7 @@ const aramWinRates = async (champArray) => {
 
     console.log("Parsed QUERY RESULTS: ", data);
     const modifiedWin = await calculateModifiedWinRates(data.data)
-
+    console.log('MODIFY:',modifiedWin)
     // Create a map of champion names to win rates to keep the team order
     const winRateMap = new Map(
       modifiedWin.map((entry) => [entry.champion, entry.win_rate])
