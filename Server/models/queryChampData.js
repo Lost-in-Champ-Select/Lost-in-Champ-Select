@@ -52,21 +52,40 @@ const aramWinRates = async (champArray) => {
       result._stream.pipe(passThrough); // Use the stream from the ResultSet
     });
 
-    console.log("Parsed QUERY RESULTS: ", data);
     const modifiedWin = await calculateModifiedWinRates(data.data)
-    console.log('MODIFY:',modifiedWin)
+    console.log('Modified Champ Data:',modifiedWin)
     // Create a map of champion names to win rates to keep the team order
+
     const winRateMap = new Map(
-      modifiedWin.map((entry) => [entry.champion, entry.win_rate])
+      modifiedWin.map((entry) => [
+        entry.champion,
+        {
+          win_rate: Math.floor(entry.win_rate * 100),
+          kda: entry.kda,
+          gold: entry.gold,
+          damage: entry.damage,
+          modified_win_rate: entry.modified_win_rate,
+        },
+      ])
     );
 
     // Reorder the data based on the original champArray
-    const reorderedData = champArray.map((champ) => ({
-      champion: champ,
-      win_rate: Math.floor((winRateMap.get(champ) || 0) * 100),
-    }));
+    const reorderedData = champArray.map((champ) => {
+      const champData = winRateMap.get(champ) || {
+        win_rate: 0,
+        kda: 0,
+        gold: 0,
+        damage: 0,
+        modified_win_rate: 0,
+      };
 
-    console.log("Reordered win rates: ", reorderedData);
+      return {
+        champion: champ,
+        ...champData, // Spread operator to include all properties
+      };
+    });
+
+    console.log("Reordered champion stats: ", reorderedData);
     return reorderedData;
   } catch (error) {
     console.error("Error querying ClickHouse:", error);
