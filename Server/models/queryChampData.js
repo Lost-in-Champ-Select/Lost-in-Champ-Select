@@ -26,45 +26,7 @@ const aramWinRates = async (champArray) => {
 
   console.log("querying winrates for:", championArrayString);
 
-  let query = `
-    WITH
-    flattened_data AS (
-      SELECT
-        champion,
-        win
-      FROM (
-        SELECT
-          arrayJoin(team1_champions) AS champion,
-          team1_win AS win
-        FROM
-          aram_matches
-        UNION ALL
-        SELECT
-          arrayJoin(team2_champions) AS champion,
-          NOT team1_win AS win
-        FROM
-          aram_matches
-      )
-    ),
-    champion_win_rates AS (
-      SELECT
-        champion,
-        avg(win) AS win_rate
-      FROM
-        flattened_data
-      WHERE
-        champion IN (${championArrayString})
-      GROUP BY
-        champion
-    )
-  SELECT
-    champion,
-    win_rate
-  FROM
-    champion_win_rates
-  ORDER BY
-    champion;
-  `;
+  let query = getTenChampsStats(championArrayString)
 
   try {
     const result = await client.query({
