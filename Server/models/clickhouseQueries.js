@@ -1,4 +1,4 @@
-let getBasicWinrates = `
+export const getBasicWinrates = `
     WITH
     flattened_data AS (
       SELECT
@@ -39,7 +39,7 @@ let getBasicWinrates = `
   `;
 
 //! HARDCODED FOR TEST, dont use this
-let _getTenChampsHardcoded = `
+export const _getTenChampsHardcoded = `
 WITH
   team1_data AS (
     SELECT
@@ -117,7 +117,7 @@ ORDER BY
   champion;`;
 
 //! Dynamic version
-let getTenChampsStats = `
+export const getTenChampsStats = `
 WITH
   team1_data AS (
     SELECT
@@ -195,7 +195,7 @@ ORDER BY
   champion;
 `;
 
-let queryAllChampStats = `
+export const queryAllChampStats = `
 WITH
   team1_data AS (
     SELECT

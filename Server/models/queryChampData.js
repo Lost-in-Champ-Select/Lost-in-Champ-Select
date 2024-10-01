@@ -1,4 +1,5 @@
 import client from "./ingest/clickhouse.js";
+import {getTenChampsStats} from "./clickhouseQueries.js";
 import { champions }  from "../champions.js"
 // TODO : define queries to get win rate data etc.
 import { PassThrough } from "stream";
@@ -67,7 +68,7 @@ const aramWinRates = async (champArray) => {
 
   try {
     const result = await client.query({
-      query, // Passing query string here
+      getTenChampsStats, // Passing query string here
       format: "JSON", // Ensure response is JSON formatted
     });
     const data = await new Promise((resolve, reject) => {
