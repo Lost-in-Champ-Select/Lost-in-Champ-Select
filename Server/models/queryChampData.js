@@ -64,7 +64,7 @@ const aramWinRates = async (champArray) => {
           kda: entry.kda,
           gold: entry.gold,
           damage: entry.damage,
-          modified_win_rate: entry.modified_win_rate,
+          modified_win_rate: Math.floor(entry.modified_win_rate * 100),
         },
       ])
     );
