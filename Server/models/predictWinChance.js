@@ -1,71 +1,6 @@
-const championsData = [
-  {
-    champion: "Irelia",
-    avg_win_rate: 0.495,
-    avg_kda: 3.69,
-    avg_gold: 65079.84,
-    avg_damage: 310477.95,
-  },
-  {
-    champion: "Janna",
-    avg_win_rate: 0.501,
-    avg_kda: 4.64,
-    avg_gold: 66700.81,
-    avg_damage: 321948.69,
-  },
-  {
-    champion: "Jayce",
-    avg_win_rate: 0.443,
-    avg_kda: 3.88,
-    avg_gold: 67668.34,
-    avg_damage: 329508.75,
-  },
-  {
-    champion: "Jinx",
-    avg_win_rate: 0.524,
-    avg_kda: 3.98,
-    avg_gold: 65589.84,
-    avg_damage: 317324.13,
-  },
-  {
-    champion: "Nasus",
-    avg_win_rate: 0.54,
-    avg_kda: 3.79,
-    avg_gold: 67180.11,
-    avg_damage: 332862.39,
-  },
-  {
-    champion: "Tristana",
-    avg_win_rate: 0.479,
-    avg_kda: 3.81,
-    avg_gold: 65573.6,
-    avg_damage: 315127.66,
-  },
-  {
-    champion: "Tryndamere",
-    avg_win_rate: 0.519,
-    avg_kda: 3.81,
-    avg_gold: 65480.22,
-    avg_damage: 314319.9,
-  },
-  {
-    champion: "Varus",
-    avg_win_rate: 0.499,
-    avg_kda: 4.12,
-    avg_gold: 67682.55,
-    avg_damage: 328138.53,
-  },
-  {
-    champion: "Vi",
-    avg_win_rate: 0.513,
-    avg_kda: 3.8,
-    avg_gold: 66740.63,
-    avg_damage: 318365.36,
-  },
-];
 
 // Define a function to calculate modified win rates
-function calculateModifiedWinRates(champions) {
+export const calculateModifiedWinRates = async (champions) => {
   // Calculate baseline values
   const averageKDA =
     champions.reduce((sum, champ) => sum + champ.avg_kda, 0) / champions.length;
@@ -111,6 +46,4 @@ function calculateModifiedWinRates(champions) {
   return champions; // Return the modified champion objects
 }
 
-// Apply modifiers and infer winning chances
-const modifiedChampionsData = calculateModifiedWinRates(championsData);
-console.log(modifiedChampionsData);
+

@@ -1,6 +1,7 @@
 import client from "./ingest/clickhouse.js";
 import {getTenChampsStats} from "./clickhouseQueries.js";
-import { champions }  from "../champions.js"
+import { champions } from "../champions.js"
+import {calculateModifiedWinRates} from "./predictWinChance.js"
 // TODO : define queries to get win rate data etc.
 import { PassThrough } from "stream";
 
@@ -52,9 +53,11 @@ const aramWinRates = async (champArray) => {
     });
 
     console.log("Parsed QUERY RESULTS: ", data);
+    const modifiedWin = await calculateModifiedWinRates(data.data)
+
     // Create a map of champion names to win rates to keep the team order
     const winRateMap = new Map(
-      data.data.map((entry) => [entry.champion, entry.win_rate])
+      modifiedWin.map((entry) => [entry.champion, entry.win_rate])
     );
 
     // Reorder the data based on the original champArray
