@@ -1,5 +1,5 @@
 import client from "./ingest/clickhouse.js";
-//import {getTenChampsStats} from "./clickhouseQueries.js";
+import {getTenChampsStats} from "./clickhouseQueries.js";
 import { champions }  from "../champions.js"
 // TODO : define queries to get win rate data etc.
 import { PassThrough } from "stream";
