@@ -192,16 +192,16 @@ const getEachMatchesData = async (queueType) => {
         team2_champ4_gold_earned: info.participants[8]?.goldEarned,
         team2_champ5_gold_earned: info.participants[9]?.goldEarned,
         // Damage Dealt
-        team1_champ1_damage_dealt: info.participants[0]?.totalDamageDealt,
-        team1_champ2_damage_dealt: info.participants[1]?.totalDamageDealt,
-        team1_champ3_damage_dealt: info.participants[2]?.totalDamageDealt,
-        team1_champ4_damage_dealt: info.participants[3]?.totalDamageDealt,
-        team1_champ5_damage_dealt: info.participants[4]?.totalDamageDealt,
-        team2_champ1_damage_dealt: info.participants[5]?.totalDamageDealt,
-        team2_champ2_damage_dealt: info.participants[6]?.totalDamageDealt,
-        team2_champ3_damage_dealt: info.participants[7]?.totalDamageDealt,
-        team2_champ4_damage_dealt: info.participants[8]?.totalDamageDealt,
-        team2_champ5_damage_dealt: info.participants[9]?.totalDamageDealt,
+        team1_champ1_damage_dealt: info.participants[0]?.totalDamageDealtToChampions,
+        team1_champ2_damage_dealt: info.participants[1]?.totalDamageDealtToChampions,
+        team1_champ3_damage_dealt: info.participants[2]?.totalDamageDealtToChampions,
+        team1_champ4_damage_dealt: info.participants[3]?.totalDamageDealtToChampions,
+        team1_champ5_damage_dealt: info.participants[4]?.totalDamageDealtToChampions,
+        team2_champ1_damage_dealt: info.participants[5]?.totalDamageDealtToChampions,
+        team2_champ2_damage_dealt: info.participants[6]?.totalDamageDealtToChampions,
+        team2_champ3_damage_dealt: info.participants[7]?.totalDamageDealtToChampions,
+        team2_champ4_damage_dealt: info.participants[8]?.totalDamageDealtToChampions,
+        team2_champ5_damage_dealt: info.participants[9]?.totalDamageDealtToChampions,
         // Damage Taken
         team1_champ1_damage_taken: info.participants[0]?.totalDamageTaken,
         team1_champ2_damage_taken: info.participants[1]?.totalDamageTaken,
@@ -416,3 +416,15 @@ for (; ;) {
 // TODO ISSUES
 //? need it to stop looking up matches if requests arent coming back
 //? need it to keep going if its just a one off
+
+//!   400	Bad request
+//!   401	Unauthorized
+//!   403	Forbidden
+//!   404	Data not found
+//!   405	Method not allowed
+//!   415	Unsupported media type
+//!   429	Rate limit exceeded
+//!   500	Internal server error
+//!   502	Bad gateway
+//!   503	Service unavailable
+//!   504	Gateway timeout
