@@ -50,12 +50,12 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
     await new Promise((resolve) => setTimeout(resolve, retry * 1000));
     return getLastNumMatches(playerId, numMatches);
   } else if (response.status === 401) {
-    let error = {
+    let bad = {
       status: response.status,
       message: `Unauthorized(401) : ${response.status}`,
     };
     console.log(error)
-    return error.json();
+    return bad.json();
   } else if (response.status === 403) {
     let error = {
       status: response.status,
