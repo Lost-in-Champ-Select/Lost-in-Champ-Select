@@ -43,13 +43,13 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
 
   const anyQueue = `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?start=0&count=${numMatches}&api_key=${riotKey}`
 
-  const fetchMe;
+  let fetchMe;
   if (queue === 'aram') {
     fetchMe = aram
   } else {
     fetchMe = anyQueue
   }
-  
+
   const response = await fetch(fetchMe);
 
   if (response.status === 200) {
