@@ -23,9 +23,7 @@ async function connectToPostgreSQL() {
 await connectToPostgreSQL();
 
 const getEachMatchesData = async (queueType) => {
-  let initialPlayer =
-    "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w";
-
+  
   const getMatchIdHistoryAndStore = async (playerId, numMatches) => {
 
     try {
@@ -409,6 +407,9 @@ for (; ;) {
     await postgres.release();
     console.log("PG CLOSED");
     break;
+  }
+  if (totalARAMMatches <= totalCLASSICMatches) {
+    getEachMatchesData('aram')
   }
   await getEachMatchesData();
   console.log(`

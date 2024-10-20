@@ -37,16 +37,21 @@ export async function getMatchById(id) {
 
 export async function getLastNumMatches(playerId, numMatches, queue) {
   //? queue info  https://static.developer.riotgames.com/docs/lol/queues.json
-  if (!queue) queue = "";
-  const response = await fetch(
-    `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?start=0&count=${numMatches}&api_key=${riotKey}`
-  );
+  const aram = `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?queue=450&start=0&count=${numMatches}&api_key=${riotKey}`
 
-  // const response = await fetch(
-  //   `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?start=0&count=${numMatches}&api_key=${riotKey}`
-  // );
+  const classic = `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?queue=450&start=0&count=${numMatches}&api_key=${riotKey}`
 
-  console.log('called for last num matches:',response)
+  const anyQueue = `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?start=0&count=${numMatches}&api_key=${riotKey}`
+
+  const fetchMe;
+  if (queue === 'aram') {
+    fetchMe = aram
+  } else {
+    fetchMe = anyQueue
+  }
+  
+  const response = await fetch(fetchMe);
+
   if (response.status === 200) {
     return await response.json();
   } else if (response.status === 429) {
