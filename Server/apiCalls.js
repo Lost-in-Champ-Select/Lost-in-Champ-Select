@@ -31,7 +31,7 @@ export async function getMatchById(id) {
          status: response.status,
          message: `Did not recieve valid response, response recieved: ${response.status}`,
        };
-      return fail
+      return Promise.resolve(fail)
     } else {
       throw new Error(`Did not recieve valid response, response recieved: ${response.status}`);
     }
