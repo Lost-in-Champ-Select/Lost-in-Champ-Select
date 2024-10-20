@@ -55,7 +55,7 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
       message: `Unauthorized(401) : ${response.status}`,
     };
     console.log('Error in getLastNumMatches (API calls)',bad)
-    return bad.json();
+    return bad
   } else if (response.status === 403) {
     let error = {
       status: response.status,
@@ -69,7 +69,7 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
       status: 400,
     };
     console.log('Error in getLastNumMatches (API calls)',bad)
-    return bad.json();
+    return bad
   } else {
     throw new Error(
       `Did not recieve valid response, response recieved: ${response.status}`
