@@ -387,7 +387,7 @@ const getEachMatchesData = async (queueType) => {
     console.log("**match ingestion end**");
 
   } catch (err) {
-    console.log(console.log(err);)
+    console.log(err)
 }
 
 };
