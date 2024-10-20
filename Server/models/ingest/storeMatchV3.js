@@ -27,8 +27,9 @@ const getEachMatchesData = async (queueType) => {
     "2H0QnLfmiPxeRr7dg9PRiiBpKA086TloQenQzqHygSvVI6mOMc0haAI2o0mqy0qOMheAWXP4zv0J9w";
 
   const getMatchIdHistoryAndStore = async (playerId, numMatches) => {
-    console.log('GETTING MATCH ID HISTORY AND STORE FOR :', playerId)
+  
     let playerHistory = await getLastNumMatches(playerId, numMatches, queueType);
+    console.log('player history:', playerHistory)
     if (!Array.isArray(playerHistory)) {
       console.log("getMatchIdHistoryAndStore ERROR");
       return;
