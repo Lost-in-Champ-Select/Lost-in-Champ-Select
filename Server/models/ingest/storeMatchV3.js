@@ -105,11 +105,13 @@ const getEachMatchesData = async (queueType) => {
   };
 
   const parseMatchData = async (promiseArray) => {
+    console.log('PARSE MATCH DATA START')
     let matches = await Promise.all(promiseArray);
     let parsed = [];
     let matchIdsSeen = [];
     let playerIds = new Set()
     matches.forEach((match) => {
+      console.log("matches . for each =", match )
       if (typeof match === "string") {
         console.log(`GOT ${match.status} FROM RIOT`)
         matchIdsSeen.push(match.match)
@@ -374,16 +376,20 @@ const getEachMatchesData = async (queueType) => {
 
   //! ********************************** WORK STARTS HERE **********************************
 
+  try {
+    let initialMatches = await loadMatchesOrGetMore()
+    console.log('INITIAL MATCHES COMPLETE')
+    let matchData = callMultipleMatchesData(initialMatches);
+    console.log('CALLDATA COMPLETE')
+    let parsedData = await parseMatchData(matchData);
+    console.log('PARSEDDATA COMPLETE')
+    await batchInsertMatchesClickhouse(parsedData);
+    console.log("**match ingestion end**");
 
+  } catch (err) {
+    console.log(console.log(err);)
+}
 
-  let initialMatches = await loadMatchesOrGetMore()
-  console.log('INITIAL MATCHES COMPLETE')
-  let matchData = callMultipleMatchesData(initialMatches);
-  console.log('CALLDATA COMPLETE')
-  let parsedData = await parseMatchData(matchData);
-  console.log('PARSEDDATA COMPLETE')
-  await batchInsertMatchesClickhouse(parsedData);
-  console.log("**match ingestion end**");
 };
 
 // getEachMatchesData(10);
