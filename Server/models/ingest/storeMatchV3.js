@@ -111,17 +111,21 @@ const getEachMatchesData = async (queueType) => {
     let matchIdsSeen = [];
     let playerIds = new Set()
     matches.forEach((match) => {
-      console.log("matches . for each =", match )
+
       if (typeof match === "string") {
         console.log(`GOT ${match.status} FROM RIOT`)
         matchIdsSeen.push(match.match)
         return;
       }
+
       let { info, metadata } = match;
+
       matchIdsSeen.push(metadata?.matchId);
+
       if (info?.gameType === "CUSTOM_GAME") return;
-      if (metadata === undefined || info.endOfGameResult === "Abort_Unexpected")
-        return;
+      if (info?.endOfGameResult === "Abort_TooFewPlayers") return;
+      if (info?.endOfGameResult === "Abort_Unexpected") return;
+      if (metadata === undefined) return;
 
       let parsedMatchData = {
         game_id: info.gameId,
