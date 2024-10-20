@@ -31,7 +31,12 @@ const getEachMatchesData = async (queueType) => {
     try {
       let playerHistory = await getLastNumMatches(playerId, numMatches, queueType);
       console.log('player history:', playerHistory)
+
       if (!Array.isArray(playerHistory)) {
+        if (playerHistory.status === 401) {
+          console.log("UNAUTHORIZED BY RIOT, ENDING SCRIPT")
+          process.exit(1)
+        }
         console.log("getMatchIdHistoryAndStore ERROR", playerHistory);
         return;
       }
@@ -81,9 +86,7 @@ const getEachMatchesData = async (queueType) => {
         let id = playerObject.player_id
         try {
           await getMatchIdHistoryAndStore(id, 20);
-          console.log('we got here')
           await postgres.query("UPDATE players SET seen = TRUE WHERE player_id = ($1)", [id])
-          console.log('should be set to T')
         } catch (err) {
           console.log("ERROR IN loadMatchesOrGetMore", err)
         }
