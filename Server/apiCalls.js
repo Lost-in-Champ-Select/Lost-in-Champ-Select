@@ -55,7 +55,7 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
       message: `Unauthorized(401) : ${response.status}`,
     };
     console.log(error)
-    throw new Error(error);
+    return error.json();
   } else if (response.status === 403) {
     let error = {
       status: response.status,
