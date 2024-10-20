@@ -74,9 +74,8 @@ const getEachMatchesData = async (queueType) => {
       let players = await postgres.query(
         "SELECT player_id FROM players WHERE seen = FALSE LIMIT 20"
       );
-      console.log('PLAYERS:', players)
       players.rows.forEach(async (playerObject) => {
-        console.log('getting history for ', playerObject)
+        console.log('getting history for ', playerObject.player_id)
         let id = playerObject.player_id
         try {
           await getMatchIdHistoryAndStore(id, 20);
