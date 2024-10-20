@@ -18,18 +18,21 @@ export async function getMatchById(id) {
       console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`)
       await new Promise((resolve) => setTimeout(resolve, retry * 1000));
       return getMatchById(id)
-    } else if (response.status === 403 | 401) {
+    } else if (response.status === 403 || 401) {
        let error = {
          status: response.status,
          message: `Did not recieve valid response, response recieved: ${response.status}`,
        };
-      // return `skipMatch`;
-      console.log(error)
-      console.log(response)
+      console.log("error in getMatchById":, error);
+      console.log("Response in getMatchById:", response);
       throw new Error(error);
+    } else if (response.status === 404) {
+       let fail = {
+         status: response.status,
+         message: `Did not recieve valid response, response recieved: ${response.status}`,
+       };
+      return fail
     } else {
-      // return `skipMatch`;
-    //  return { status: response.status, match: id };
       throw new Error(`Did not recieve valid response, response recieved: ${response.status}`);
     }
 
@@ -66,14 +69,14 @@ console.log(`calling ${queue} match history `)
       status: response.status,
       message: `Unauthorized(401) : ${response.status}`,
     };
-    console.log('Error in getLastNumMatches (API calls)',bad)
+    console.log("getLastNumMatches: Error (API calls)", bad);
     return bad
   } else if (response.status === 403) {
     let error = {
       status: response.status,
       message: `Forbidden(403): ${response.status}`,
     };
-    console.log(error)
+    console.log("getLastNumMatches: response = 403 error", error);
     throw new Error(error);
   } else if (response.status === 400 || 404) {
     let mess = response.status === 400 ? "Bad Request(400)" : "Not Found(404)"

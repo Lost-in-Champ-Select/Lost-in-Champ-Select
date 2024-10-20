@@ -122,7 +122,7 @@ const getEachMatchesData = async (queueType) => {
         return;
       }
       if (match.status === !undefined) {
-        console.log(match.status)
+        console.log("parseMatchData. match status !== undfined",match.status)
         return
       }
 
