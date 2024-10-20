@@ -31,7 +31,7 @@ const getEachMatchesData = async (queueType) => {
     let playerHistory = await getLastNumMatches(playerId, numMatches, queueType);
     console.log('player history:', playerHistory)
     if (!Array.isArray(playerHistory)) {
-      console.log("getMatchIdHistoryAndStore ERROR");
+      console.log("getMatchIdHistoryAndStore ERROR", playerHistory);
       return;
     }
     let query = "INSERT INTO matches (match_id) VALUES ";

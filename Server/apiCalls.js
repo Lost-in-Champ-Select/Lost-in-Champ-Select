@@ -52,16 +52,20 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
   } else if (response.status === 403 || 401) {
     let error = {
       status: response.status,
-      message: `Did not recieve valid response, response recieved: ${response.status}`,
+      message: `Unauthorized(401) or Forbidden(403): ${response.status}`,
     };
-    // return `skipPlayer`
     throw new Error(error);
+  } else if (response.status === 400) {
+    let bad = {
+      message: "bad request",
+      status: 400,
+    }
+    return bad.json()
+
   } else {
     throw new Error(
       `Did not recieve valid response, response recieved: ${response.status}`
     );
-    // return {status: response.status, player:playerId}
-  }
 }
 
 //! gets live match and win %s / team win chance
