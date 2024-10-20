@@ -39,7 +39,7 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
   //? queue info  https://static.developer.riotgames.com/docs/lol/queues.json
   if (!queue) queue = "";
   const response = await fetch(
-    `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?${queue}start=0&count=${numMatches}&api_key=${riotKey}`
+    `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?${queue}start=0&count=${numMatches}?api_key=${riotKey}`
     );
 // console.log(
 //   `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?${queue}start=0&count=${numMatches}?api_key=${riotKey}`
