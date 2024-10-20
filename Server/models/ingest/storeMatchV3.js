@@ -129,6 +129,7 @@ const getEachMatchesData = async (queueType) => {
       if (info?.gameType === "CUSTOM_GAME") return;
       if (info?.endOfGameResult === "Abort_TooFewPlayers") return;
       if (info?.endOfGameResult === "Abort_Unexpected") return;
+      if (info?.gameMode === "") return;
       if (metadata === undefined) return;
       console.log(match)
       let parsedMatchData = {
