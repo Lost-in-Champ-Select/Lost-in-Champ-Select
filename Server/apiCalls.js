@@ -75,12 +75,13 @@ console.log(`calling ${queue} match history `)
     };
     console.log(error)
     throw new Error(error);
-  } else if (response.status === 400) {
+  } else if (response.status === 400 || 404) {
+    let mess = response.status === 400 ? "Bad Request(400)" : "Not Found(404)"
     let bad = {
-      message: "bad request",
-      status: 400,
+      message: mess,
+      status: response.status,
     };
-    console.log('Error in getLastNumMatches (API calls)',bad)
+    console.log('Error in getLastNumMatches (API calls)', bad)
     return bad
   } else {
     throw new Error(

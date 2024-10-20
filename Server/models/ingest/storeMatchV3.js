@@ -121,6 +121,10 @@ const getEachMatchesData = async (queueType) => {
         matchIdsSeen.push(match.match)
         return;
       }
+      if (match.status === !undefined) {
+        console.log(match.status)
+        return
+      }
 
       let { info, metadata } = match;
 
