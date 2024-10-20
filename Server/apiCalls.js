@@ -66,6 +66,7 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
     throw new Error(
       `Did not recieve valid response, response recieved: ${response.status}`
     );
+  }
 }
 
 //! gets live match and win %s / team win chance
