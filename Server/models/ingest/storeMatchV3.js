@@ -33,7 +33,7 @@ const getEachMatchesData = async (queueType) => {
       console.log('player history:', playerHistory)
 
       if (!Array.isArray(playerHistory)) {
-        if (playerHistory.status === 401) {
+        if (playerHistory.status === 401 || 400) {
           console.log("UNAUTHORIZED BY RIOT, ENDING SCRIPT")
           process.exit(1)
         }
