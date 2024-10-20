@@ -79,7 +79,9 @@ const getEachMatchesData = async (queueType) => {
         let id = playerObject.player_id
         try {
           await getMatchIdHistoryAndStore(id, 20);
+          console.log('we got here')
           await postgres.query("UPDATE players SET seen = TRUE WHERE player_id = ($1)", [id])
+          console.log('should be set to T')
         } catch (err) {
           console.log("ERROR IN loadMatchesOrGetMore", err)
         }
