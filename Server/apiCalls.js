@@ -41,7 +41,7 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
   const response = await fetch(
     `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?${queue}start=0&count=${numMatches}?api_key=${riotKey}`
     );
-    console.log('response', response)
+
   if (response.status === 200) {
     return await response.json();
   } else if (response.status === 429) {
@@ -49,19 +49,26 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
     console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`);
     await new Promise((resolve) => setTimeout(resolve, retry * 1000));
     return getLastNumMatches(playerId, numMatches);
-  } else if (response.status === 403 || 401) {
+  } else if (response.status 401) {
     let error = {
       status: response.status,
-      message: `Unauthorized(401) or Forbidden(403): ${response.status}`,
+      message: `Unauthorized(401) : ${response.status}`,
     };
+    console.log(error)
+    throw new Error(error);
+  } else if (response.status === 403) {
+    let error = {
+      status: response.status,
+      message: `Forbidden(403): ${response.status}`,
+    };
+    console.log(error)
     throw new Error(error);
   } else if (response.status === 400) {
     let bad = {
       message: "bad request",
       status: 400,
-    }
-    return bad.json()
-
+    };
+    return bad.json();
   } else {
     throw new Error(
       `Did not recieve valid response, response recieved: ${response.status}`

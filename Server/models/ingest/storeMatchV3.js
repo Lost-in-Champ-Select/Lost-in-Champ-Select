@@ -28,24 +28,24 @@ const getEachMatchesData = async (queueType) => {
 
   const getMatchIdHistoryAndStore = async (playerId, numMatches) => {
 
-    let playerHistory = await getLastNumMatches(playerId, numMatches, queueType);
-    console.log('player history:', playerHistory)
-    if (!Array.isArray(playerHistory)) {
-      console.log("getMatchIdHistoryAndStore ERROR", playerHistory);
-      return;
-    }
-    let query = "INSERT INTO matches (match_id) VALUES ";
-    playerHistory.forEach((match) => {
-      query += `('${match}'),`;
-    });
     try {
+      let playerHistory = await getLastNumMatches(playerId, numMatches, queueType);
+      console.log('player history:', playerHistory)
+      if (!Array.isArray(playerHistory)) {
+        console.log("getMatchIdHistoryAndStore ERROR", playerHistory);
+        return;
+      }
+      let query = "INSERT INTO matches (match_id) VALUES ";
+      playerHistory.forEach((match) => {
+        query += `('${match}'),`;
+      });
       query = query.slice(0, query.length - 1);
       query += " ON CONFLICT (match_id) DO NOTHING";
       await postgres.query(query);
+      console.log("Batched current players last 20 into PG");
     } catch (err) {
       console.log(err);
-    } finally {
-      console.log("Batched current players last 20 into PG");
+      return
     }
   };
 
