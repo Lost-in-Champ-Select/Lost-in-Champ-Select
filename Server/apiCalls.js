@@ -49,7 +49,7 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
     console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`);
     await new Promise((resolve) => setTimeout(resolve, retry * 1000));
     return getLastNumMatches(playerId, numMatches);
-  } else if (response.status 401) {
+  } else if (response.status === 401) {
     let error = {
       status: response.status,
       message: `Unauthorized(401) : ${response.status}`,
