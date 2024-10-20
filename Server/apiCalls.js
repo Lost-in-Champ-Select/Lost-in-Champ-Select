@@ -23,7 +23,7 @@ export async function getMatchById(id) {
          status: response.status,
          message: `Did not recieve valid response, response recieved: ${response.status}`,
        };
-      console.log("error in getMatchById":, error);
+      console.log("error in getMatchById:", error);
       console.log("Response in getMatchById:", response);
       throw new Error(error);
     } else if (response.status === 404) {
