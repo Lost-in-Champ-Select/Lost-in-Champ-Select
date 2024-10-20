@@ -41,7 +41,7 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
   const response = await fetch(
     `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?${queue}start=0&count=${numMatches}?api_key=${riotKey}`
     );
-console.lgo(
+console.log(
   `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?${queue}start=0&count=${numMatches}?api_key=${riotKey}`
 );
   if (response.status === 200) {
