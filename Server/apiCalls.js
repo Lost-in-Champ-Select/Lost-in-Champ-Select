@@ -36,6 +36,7 @@ export async function getMatchById(id) {
 }
 
 export async function getLastNumMatches(playerId, numMatches, queue) {
+console.log(`getting matches for : ${queue}`)
   //? queue info  https://static.developer.riotgames.com/docs/lol/queues.json
   const aram = `https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/${playerId}/ids?queue=450&start=0&count=${numMatches}&api_key=${riotKey}`
 
@@ -49,6 +50,7 @@ export async function getLastNumMatches(playerId, numMatches, queue) {
   } else {
     fetchMe = anyQueue
   }
+  console.log('queue =',fetchMe)
 
   const response = await fetch(fetchMe);
 
