@@ -8,34 +8,35 @@ const riotKey = process.env.RIOT_KEY;
 
 export async function getMatchById(id) {
   const matchId = id;
-    const  response  = await fetch(
-      `https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${riotKey}`
-    );
-    if (response.status === 200) {
-      return await response.json();
-    } else if (response.status === 429) {
-      const retry = response.headers.get("Retry-After")
-      console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`)
-      await new Promise((resolve) => setTimeout(resolve, retry * 1000));
-      return getMatchById(id)
-    } else if (response.status === 403 || 401) {
-       let error = {
-         status: response.status,
-         message: `Did not recieve valid response, response recieved: ${response.status}`,
-       };
-      console.log("error in getMatchById:", error);
-      console.log("Response in getMatchById:", response);
-      throw new Error(error);
-    } else if (response.status === 404) {
-       let fail = {
-         status: response.status,
-         message: `Did not recieve valid response, response recieved: ${response.status}`,
-       };
-      return Promise.resolve(fail)
-    } else {
-      throw new Error(`Did not recieve valid response, response recieved: ${response.status}`);
-    }
-
+  const  response  = await fetch(
+    `https://americas.api.riotgames.com/lol/match/v5/matches/${matchId}?api_key=${riotKey}`
+  );
+  if (response.status === 200) {
+    return await response.json();
+  }
+  if (response.status === 404) {
+    let fail = {
+      status: response.status,
+      message: `Did not recieve valid response, response recieved: ${response.status}`,
+    };
+    return Promise.resolve(fail)
+  }
+  if (response.status === 429) {
+    const retry = response.headers.get("Retry-After")
+    console.log(`HIT RATE LIMIT RETRYING AFTER ${retry}`)
+    await new Promise((resolve) => setTimeout(resolve, retry * 1000));
+    return getMatchById(id)
+  }
+  if (response.status === 403 || 401) {
+    let error = {
+      status: response.status,
+      message: `Did not recieve valid response, response recieved: ${response.status}`,
+    };
+    console.log("error in getMatchById:", error);
+    console.log("Response in getMatchById:", response);
+    throw new Error(error);
+  }
+  throw new Error(`Did not recieve valid response, response recieved: ${response.status}`)
 }
 
 export async function getLastNumMatches(playerId, numMatches, queue) {
