@@ -135,7 +135,7 @@ const getEachMatchesData = async (queueType) => {
       if (info?.endOfGameResult === "Abort_Unexpected") return;
       if (info?.gameMode === "") return;
       if (metadata === undefined) return;
-      console.log(match)
+      
       let parsedMatchData = {
         game_id: info.gameId,
         match_id: metadata.matchId,
