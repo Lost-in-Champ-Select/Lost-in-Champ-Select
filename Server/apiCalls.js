@@ -111,7 +111,7 @@ export async function getLiveMatch(req, res) {
 
     //! send custom win rates too
     gameData.data = resolved
-    console.log('resolved data in get live match:',resolved)
+
     let champArray = resolved.participants?.map((player) => {
       return player.championId
     })
@@ -119,7 +119,7 @@ export async function getLiveMatch(req, res) {
     gameData.winRates = winRates;
     let teamChance = await teamWinRates(winRates)
     gameData.teamChance = teamChance
-    console.log('Sending back gamedata:', gameData)
+
     res.json(gameData);
   } catch (err) {
     console.log("Error getting live match:", err);
@@ -138,12 +138,12 @@ export async function getAccountBySummonerName (req, res) {
       `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${summoner}/${tag}?api_key=${riotKey}`
     );
     let accountInfo = await data.json()
-    console.log('ACCOUNT INFO',accountInfo)
+    console.log('Found Player',accountInfo?.gameName )
     let moreInfo = await fetch(
       `https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${accountInfo.puuid}?api_key=${riotKey}`
     );
     let resolved = await moreInfo.json();
-    console.log('MORE INFO',resolved);
+    console.log(resolved);
     res.json(resolved);
   } catch (err) {
     console.log("Error getting summoner by name:", err);
