@@ -1,25 +1,17 @@
-import pg from 'pg'
+import { Pool } from "pg";
+import dotenv from "dotenv";
+dotenv.config();
 
-
-const pool = new pg.Pool({
-  host: 'localhost',
-  user: 'lost_in_champ_select',
-  database: 'league_matches',
-  password: 'Gundam01',
-  port: 5432
-})
-
-// const pool = new pg.Pool({
-//   host: 'localhost',
-//   user: 'coryzauss',
-//   database: 'league_matches',
-//   password: 'password',
-//   port: 5432
-// })
+// Create a new pool instance using the environment variables
+const pool = new Pool({
+  user: process.env.PG_USER, // PostgreSQL user
+  host: process.env.PG_HOST, // PostgreSQL host
+  database: process.env.PG_DATABASE, // PostgreSQL database name
+  password: process.env.PG_PASSWORD, // PostgreSQL password
+  port: process.env.PG_PORT || 5432, // PostgreSQL port (default is 5432)
+});
 
 export default pool;
 
 
-// GRANT ALL PRIVILEGES ON DATABASE league_matches TO lost_in_champ_select;
 
-// pm2 start Server/models/ingest/storeMatchV2.js  --env RIOT_KEY=RGAPI-68224a0f-f9c0-4467-ae6d-9c78d56156a2

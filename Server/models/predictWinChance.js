@@ -1,7 +1,6 @@
 
 // Define a function to calculate modified win rates
 export const calculateModifiedWinRates = async (champions) => {
-  console.log('INCOMING CHAMPS',champions)
   // Calculate baseline values
   const averageKDA =
     champions.reduce((sum, champ) => sum + champ.kda, 0) / champions.length;

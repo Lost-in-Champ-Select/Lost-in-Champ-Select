@@ -1,8 +1,10 @@
 import { createClient } from "@clickhouse/client"; // or '@clickhouse/client-web'
+import dotenv from "dotenv";
+dotenv.config();
 
 const client = createClient({
-   url: 'http://localhost:8123'
+  url: process.env.CLICKHOUSE_URI,
 });
 
 
-export default client 
+export default client

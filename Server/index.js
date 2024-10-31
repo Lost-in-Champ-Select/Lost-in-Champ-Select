@@ -7,11 +7,7 @@ import cors from "cors";
 import path from "path";
 dotenv.config()
 
-const allowedOrigins = [
-  "https://lostinchampselect.com",
-  "https://www.lostinchampselect.com",
-  "http://localhost:9000",
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
 
 app.use(
   cors({
