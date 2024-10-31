@@ -6,7 +6,7 @@ import {calculateModifiedWinRates} from "./predictWinChance.js"
 import { PassThrough } from "stream";
 
 const aramWinRates = async (champArray) => {
-  console.log('CHAMPARRAY:', champArray)
+
   let convertIdToChamp = (champArray) => {
     if (typeof champArray === "string") champArray = JSON.parse(champArray);
     if (!Array.isArray(champArray)) return;
@@ -53,7 +53,7 @@ const aramWinRates = async (champArray) => {
     });
 
     const modifiedWin = await calculateModifiedWinRates(data.data)
-    console.log('Modified Champ Data:',modifiedWin)
+
     // Create a map of champion names to win rates to keep the team order
 
     const winRateMap = new Map(
@@ -85,7 +85,7 @@ const aramWinRates = async (champArray) => {
       };
     });
 
-    console.log("Reordered champion stats: ", reorderedData);
+
     return reorderedData;
   } catch (error) {
     console.error("Error querying ClickHouse:", error);
