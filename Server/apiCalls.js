@@ -119,7 +119,7 @@ export async function getLiveMatch(req, res) {
     gameData.winRates = winRates;
     let teamChance = await teamWinRates(winRates)
     gameData.teamChance = teamChance
-
+    console.log("* returning live game data *")
     res.json(gameData);
   } catch (err) {
     console.log("Error getting live match:", err);
